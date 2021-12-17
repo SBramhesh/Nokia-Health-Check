@@ -4,7 +4,7 @@ import re
 import copy
 import json
 import numpy as np
-from streamlit_disqus import st_disqus
+# from streamlit_disqus import st_disqus
 
 
 # st_disqus("streamlit-disqus-demo")
