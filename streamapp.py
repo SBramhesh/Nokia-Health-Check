@@ -220,8 +220,8 @@ with st.container():
         #  st.write(string_data)# Can be used wherever a "file-like" object is accepted:
         # excel_read = pd.read_csv(uploaded_file)
         uploadedfn = uploaded_file.name
-        siteid = uploadedfn.split('_')[2]
-        st.sidebar.write(siteid)
+        siteid = uploadedfn.split('_')[2][1:]
+        st.sidebar.write(f"Site Id: :point_right: *{siteid}*")
         excel_read = pd.read_csv(uploaded_file, skiprows=1, header=None)
         myfiler = excel_read
 
@@ -271,6 +271,9 @@ with st.container():
             myfiler = myfiler.iloc[:, :-N]
         myfiler.columns = newlistt
         print(newlistt)
+        starttime = newlistt[3]
+        endtime = newlistt[-1]
+
         myfiler.reset_index(drop=True)
 
         # myfiler = myfiler[myfiler.isin(['RMOD-']).any(axis=1)]
@@ -602,6 +605,8 @@ with st.container():
         flat_list[:] = [x for x in flat_list if "0|0" not in x]
         print(flat_list)
 
+        st.write(
+            f"*Capture Time Range*: :point_right: [{starttime}] to [{endtime}]")
         st.table(df.style.apply(lambda x: [f"background: {bg_color(v, flat_list)}" for v in x],
                                 subset=["ANT2 DI Cause", "ANT1 DI Cause", "ANT3 DI Cause", "ANT4 DI Cause", ">3db Failures"], axis=1)
                  .applymap(color_negative, color='red', subset="Average DI"))
@@ -631,6 +636,6 @@ with st.container():
         st.download_button(
             label="Download data as CSV",
             data=csv,
-            file_name='output_summary.csv',
+            file_name=f"{siteid}_Output_summary.csv",
             mime='text/csv',
         )
