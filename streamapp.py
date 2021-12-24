@@ -6,6 +6,10 @@ import numpy as np
 import hashlib
 import requests
 import json
+from itertools import chain
+import boto3
+from botocore.exceptions import NoCredentialsError
+pd.options.display.precision = 1
 # from streamlit_disqus import st_disqus
 
 
@@ -160,6 +164,31 @@ add_selectbox = st.sidebar.selectbox(
 #             os.remove(os.path.join(root, filename))
 # print("Script completed")
 # raise SystemExit
+
+
+ACCESS_KEY = 'XXXXXXXXXXXXXXXXXXXXXXX'
+SECRET_KEY = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+
+
+def upload_to_aws(local_file, bucket, s3_file):
+    s3 = boto3.client('s3', aws_access_key_id=ACCESS_KEY,
+                      aws_secret_access_key=SECRET_KEY)
+
+    try:
+        s3.upload_file(local_file, bucket, s3_file)
+        print("Upload Successful")
+        return True
+    except FileNotFoundError:
+        print("The file was not found")
+        return False
+    except NoCredentialsError:
+        print("Credentials not available")
+        return False
+
+
+# uploaded = upload_to_aws('local_file', 'bucket_name', 's3_file_name')
+
+
 def color_negative_red(value):
 
     if value < 0:
@@ -189,18 +218,76 @@ with st.container():
         #  st.write(stringio)# To read file as string:
         #  string_data = stringio.read()
         #  st.write(string_data)# Can be used wherever a "file-like" object is accepted:
-        primaryexcelsheet = 'Raw_Data'
-        excel_read = pd.read_excel(uploaded_file, sheet_name=primaryexcelsheet)
-        filt = excel_read.iloc[:, 0].str.contains(
-            'Radio module') & excel_read.iloc[:, 2].str.contains('RX carrier')
-        mylist = (excel_read.loc[filt]).values.flatten().tolist()
-        excel_read.columns = mylist
-        # excel_read
+        # excel_read = pd.read_csv(uploaded_file)
+        excel_read = pd.read_csv(uploaded_file, skiprows=1, header=None)
+        myfiler = excel_read
 
-        myfile = excel_read.dropna()
-        filt2 = myfile.iloc[:, 0].str.contains('RMOD')
+        myfile1 = excel_read[excel_read.isin(['RTWP LTE']).any(axis=1)].index
+
+        if len(myfile1) > 0:
+            # print(myfile1)
+            # print(hashfunc('-'))
+            print(f"one--------{len(myfile1)}")
+            indexval = myfile1.values[0]
+            print(indexval)
+            rtwp = excel_read.drop(excel_read.index[0:indexval+1])
+            myfiler = rtwp
+            # print(rtwp)
+        # print(myfile1)
+        # print(hashfunc('-'))
+
+        # print(rtwp)
+        myfile2 = rtwp[rtwp.isin(['RTWP WCDMA']).any(axis=1)].index
+        # print(myfile2)
+        if len(myfile2) > 0:
+            indexval2 = myfile2.values[0]
+            rtwp2 = rtwp.drop(excel_read.index[indexval2:])
+            print(rtwp2)
+            print(rtwp2.shape)
+            list(rtwp2.columns)
+            myfiler = rtwp2
+
+        # myfiler = myfile.replace({'-': '0'}, regex=True)
+        myfiler = myfiler.applymap(lambda x: '0' if (x == '-') else x)
+        # myfiler.applymap(lambda x: x**2)
+        # myfile = myfile[~myfile.eq('-').any(1)]
+
+        filt = myfiler.iloc[:, 0].str.contains(
+            'Radio module') & myfiler.iloc[:, 2].str.contains('RX carrier')
+        mylist = (myfiler.loc[filt]).values.flatten().tolist()
+        # print(mylist)
+        # myfiler.columns = mylist
+        # myfiler.reset_index(drop=True)
+        newlist = list(map(str, mylist))
+        print(type(newlist))
+        newlistt = [x for x in newlist if 'nan' not in x.lower()]
+        lennewlist = len(newlist)
+        lennewlistt = len(newlistt)
+        N = lennewlist - lennewlistt
+        if N > 0:
+            myfiler = myfiler.iloc[:, :-N]
+        myfiler.columns = newlistt
+        print(newlistt)
+        myfiler.reset_index(drop=True)
+
+        # myfiler = myfiler[myfiler.isin(['RMOD-']).any(axis=1)]
+        minusfilt = ~myfiler.eq('Radio module').any(
+            1) & ~myfiler.eq('RX carrier').any(1)
+        myfiler = myfiler[minusfilt]
+        # radioofile = myfiler.set_index('Radio module')
+
+        # filt = excel_read.iloc[:, 0].str.contains(
+        #     'Radio module') & excel_read.iloc[:, 2].str.contains('RX carrier')
+        # mylist = (excel_read.loc[filt]).values.flatten().tolist()
+        # excel_read.columns = mylist
+        # # excel_read
+
+        # myfile = excel_read.dropna()
+        # # myfile[myfile["team"].str.contains("-")==False]
+        # myfile = myfile[~myfile.eq('-').any(1)]
+        filt2 = myfiler.iloc[:, 0].str.contains('RMOD')
         # filt2
-        myfile = myfile.loc[filt2]
+        myfile = myfiler.loc[filt2]
         radiofile = myfile.set_index('Radio module')
         grouped = radiofile.groupby('RX carrier')
         # st.write(radiofile)
@@ -224,13 +311,20 @@ with st.container():
             else:
                 return 0
 
-        def bg_color(v):
-            if (lastpercent(v) and hashfunc(v) != 62282978):
+        def bg_color(v, threedlist):
+            #     print(threedlist)
+            if (lastpercent(v) and hashfunc(v) != 62282978 and v in threedlist):
                 return "red"
-            elif (lastpercent(v) and hashfunc(v) == 62282978):
-                return "lightgreen"
+        #     elif (lastpercent(v) and hashfunc(v) == 62282978):
+        #         return "lightgreen"
             else:
-                return ""
+                return "lightgreen"
+
+        def highlight_max(x, color):
+            return np.where(x == np.nanmax(x.to_numpy()), f"color: {color};", None)
+
+        def color_negative(v, color):
+            return f"background: {color};" if v > 3 else f"background: lightgreen"
 
         # create a function with a dictionary
 
@@ -345,7 +439,14 @@ with st.container():
         # st.write(rxlist)
         limitdb = 2.99
 
-        for i in rxlist:
+        cleanrxlist = [x for x in rxlist if str(x) != 'nan']
+        print(cleanrxlist)
+        rxlistminusY = [x for x in cleanrxlist if "YPH" not in x]
+        print(rxlistminusY)
+        rxlistminusYZ = [x for x in rxlistminusY if "ZPH" not in x]
+        print(rxlistminusYZ)
+
+        for i in rxlistminusYZ:
 
             dff = grouped.get_group(i)
             # print(f'value of i is..{i}')
@@ -359,12 +460,14 @@ with st.container():
             rmodlist.append(dff.index[0])
             readingslist.append(str(no_of_readings))
 
-            dff['Avg'] = dff.iloc[:, 2:].sum(axis=1)/no_of_readings
+            # dff['Avg'] = dff.iloc[:, 2:].sum(axis=1)/no_of_readings
+            dff['Avg'] = np.around(dff.iloc[:, 2:].astype(
+                float).sum(axis=1)/no_of_readings, 1)
             # print(f"dff average.. {dff.iloc[1,-1]}")
-            avg_ant1.append(np.around(dff.iloc[0, -1], 1))
-            avg_ant2.append(np.around(dff.iloc[1, -1], 1))
-            avg_ant3.append(np.around(dff.iloc[2, -1], 1))
-            avg_ant4.append(np.around(dff.iloc[3, -1], 1))
+            avg_ant1.append(np.around(dff.iloc[0, -1].astype(float), 1))
+            avg_ant2.append(np.around(dff.iloc[1, -1].astype(float), 1))
+            avg_ant3.append(np.around(dff.iloc[2, -1].astype(float), 1))
+            avg_ant4.append(np.around(dff.iloc[3, -1].astype(float), 1))
 
         #     tdff = dff.T
         #     tdff.drop_duplicates()
@@ -374,15 +477,17 @@ with st.container():
         #     filt33 =  tdff.iloc[:,1].astype(str).str.contains(dff['RX carrier'])
         #     lphfile = radiofile.loc[filt33]
         #     tdff['DIF'] = tdff.iloc[:, -25:].agg(['max', 'min'])
-            dffdi = dff.iloc[:, 2:-1].agg(['max', 'min'])
-            dffmax = dff.iloc[:, 2:-1].agg(['min'])
+            dffdi = dff.iloc[:, 2:-1].astype(float).agg(['max', 'min'])
+            dffmax = dff.iloc[:, 2:-1].astype(float).agg(['min'])
             dffapp = dff.append(dffmax, ignore_index=True)
             print(dffapp)
             rangee = dffapp.shape[1]-3
             dffdif = dffapp
             for index in range(rangee):
-                dffdif.iloc[:, index+2] = dffapp.iloc[:, index +
-                                                      2].apply(lambda x: x - dffapp.iloc[4, index+2])
+                dffdif.iloc[:, index+2] = dffapp.iloc[:, index+2].astype(
+                    float).apply(lambda x: x - float(dffapp.iloc[4, index+2]))
+                # dffdif.iloc[:, index+2] = dffapp.iloc[:, index +
+                #   2].apply(lambda x: x - dffapp.iloc[4, index+2])
             #     dffapp.iloc[:,index+2].apply(lambda x: x - dffapp.iloc[4,index+2] )
             dffdif = dffdif.iloc[:-1, :]
 
@@ -411,14 +516,18 @@ with st.container():
             dffdit = dffdi.T
         #     dffd3 =  dffdi.loc['max'] - dffdi.loc['min']
         #     dffnew = dffdit[dffdit.columns.difference(['max', 'min'])]
-            dffdit['DI'] = dffdit['max'] - dffdit['min']
+            # dffdit['DI'] = dffdit['max'] - dffdit['min']
+            dffdit['DI'] = dffdit['max'].astype(
+                float) - dffdit['min'].astype(float)
             meandif = dffdit['DI'].mean()
         #     dffdit['DI'] =  (dffdit.iloc[0]) - Int(dffdit.iloc[1])
         #     dffd3['mean'] = dffd3['DI'].mean(axis=0)
-            grtfilt = dffdit['DI'] > 3
+            grtfilt = dffdit['DI'].astype(float) > 2.99
+            # grtfilt = dffdit['DI'] > 3
         #     dffgrt = dffdit[grtfilt]
             count = len(dffdit.loc[grtfilt])
-            minlist = max(list(dff.iloc[:, 2:-1].max()))
+            # minlist = max(list(dff.iloc[:, 2:-1].max()))
+            minlist = max(list(dff.iloc[:, 2:-1].astype(float).max()))
             avgdilist.append(np.around((meandif), 1))
 
         #     dffd3['Avg']= 0
@@ -454,13 +563,14 @@ with st.container():
                 'ANT1 DI Cause': ant1_di_cause, 'ANT2 DI Cause': ant2_di_cause, 'ANT3 DI Cause': ant3_di_cause,
                 'ANT4 DI Cause': ant4_di_cause, 'Average RTWP ANT1': avg_ant1, 'Average RTWP ANT2': avg_ant2,
                 'Average RTWP ANT3': avg_ant3, 'Average RTWP ANT4': avg_ant4,
-                'RMOD [logical number]':  rmodlist,  'CELL [logical name]': rxlist,
+                'RMOD [logical number]':  rmodlist,  'CELL [logical name]': rxlistminusYZ,
                 }
 
         # data= {'Sector-Radio Type': [], 'Band': [],'Readings Analyzed (10 second intervals)': [], 'Average DI': [] }
 
         # Create DataFrame
         df = pd.DataFrame(data)
+        # df = df.round(1)
 
         # bool_findings = df.loc[:, ['ANT1 DI Cause', 'ANT2 DI Cause',
         #    'ANT3 DI Cause', 'ANT4 DI Cause']].str.contains('0|0')
@@ -482,8 +592,16 @@ with st.container():
         </style>
         """, unsafe_allow_html=True)
 
-        st.table(df.style.apply(
-            lambda x: [f"background: {bg_color(v)}" for v in x], axis=1))
+        dfcause = df.loc[df['Average DI'] > 3, ['ANT1 DI Cause',
+                                                'ANT2 DI Cause', 'ANT3 DI Cause', 'ANT4 DI Cause']]
+        threedilist = dfcause.values.tolist()
+        flat_list = list(chain(*threedilist))
+        flat_list[:] = [x for x in flat_list if "0|0" not in x]
+        print(flat_list)
+
+        st.table(df.style.apply(lambda x: [f"background: {bg_color(v, flat_list)}" for v in x],
+                                subset=["ANT2 DI Cause", "ANT1 DI Cause", "ANT3 DI Cause", "ANT4 DI Cause", ">3db Failures"], axis=1)
+                 .applymap(color_negative, color='red', subset="Average DI"))
 
         # st.map(df)
 
