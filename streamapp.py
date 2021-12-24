@@ -219,6 +219,9 @@ with st.container():
         #  string_data = stringio.read()
         #  st.write(string_data)# Can be used wherever a "file-like" object is accepted:
         # excel_read = pd.read_csv(uploaded_file)
+        uploadedfn = uploaded_file.name
+        siteid = uploadedfn.split('_')[2]
+        st.sidebar.write(siteid)
         excel_read = pd.read_csv(uploaded_file, skiprows=1, header=None)
         myfiler = excel_read
 
@@ -285,10 +288,10 @@ with st.container():
         # myfile = excel_read.dropna()
         # # myfile[myfile["team"].str.contains("-")==False]
         # myfile = myfile[~myfile.eq('-').any(1)]
-        filt2 = myfiler.iloc[:, 0].str.contains('RMOD')
+        # filt2 = myfiler.iloc[:, 0].str.contains('RMOD')
         # filt2
-        myfile = myfiler.loc[filt2]
-        radiofile = myfile.set_index('Radio module')
+        # myfile = myfiler.loc[filt2]
+        radiofile = myfiler.set_index('Radio module')
         grouped = radiofile.groupby('RX carrier')
         # st.write(radiofile)
         rxlist = radiofile['RX carrier'].unique().tolist()
