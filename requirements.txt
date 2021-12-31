@@ -6,3 +6,4 @@ openpyxl==3.0.9
 boto==2.49.0
 pymongo==4.0.1
 XlsxWriter==3.0.2
+pyxlsb==1.0.9
