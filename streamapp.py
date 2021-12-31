@@ -7,6 +7,28 @@ import hashlib
 import requests
 import json
 from itertools import chain
+import base64
+import io
+import xlsxwriter
+# import pymongo
+# from pymongo import MongoClient
+from datetime import datetime
+# import boto
+# import boto.s3
+import sys
+# from boto.s3.key import Key
+# from github import Github
+# import dropbox
+import os
+# import pymongo
+# from pymongo import MongoClient
+# client = MongoClient("mongodb+srv://test:test@bram.nybip.mongodb.net/test")
+# database
+# db = client["Nokia_database"]
+# collection
+# company = db["LTE"]
+
+
 # import boto3
 # from botocore.exceptions import NoCredentialsError
 pd.options.display.precision = 1
@@ -137,6 +159,74 @@ add_selectbox = st.sidebar.selectbox(
 )
 
 
+# def create_git_file(content, filename):
+# Write a file
+# github = Github('')
+# repository = github.get_user().get_repo('IRAN-React')  # path in the repository
+# create with commit message
+# content = '{\"name\":\"beppe\",\"city\":\"amsterdam\"}'
+# f = repository.create_file(filename, "create_file via PyGithub", content)
+
+# # read a file
+# github = Github('personal_access_token)
+# repository = github.get_user().get_repo('my_repo')  # path in the repository
+# filename = 'files/file.json'
+# file = repository.get_contents(filename)
+# print(file.decoded_content.decode())
+
+
+# client = dropbox.client.DropboxClient( < auth_token > )
+# print 'linked account: ', client.account_info()
+
+# f = open('working-draft.txt', 'rb')
+# response = client.put_file('/magnum-opus.txt', f)
+# print 'uploaded: ', response
+
+# folder_metadata = client.metadata('/')
+# print 'metadata: ', folder_metadata
+
+# f, metadata = client.get_file_and_metadata('/magnum-opus.txt')
+# out = open('magnum-opus.txt', 'wb')
+# out.write(f.read())
+# out.close()
+# print metadata
+# github username
+# username = "BramheshV"
+# url to request
+# url = f"https://api.github.com/users/{username}"
+# make the request and return the json
+# user_data = requests.get(url).json()
+# pretty print JSON data
+# st.sidebar.write(user_data)
+
+# Get the current working
+# directory (CWD)
+cwd = os.getcwd()
+
+# Print the current working
+# directory (CWD)
+# st.sidebar.write("Current working directory:", cwd)
+
+# Get the list of all files and directories
+# in the root directory
+# dir_list = os.listdir(cwd)
+
+# st.sidebar.write("Files and directories in '", cwd, "' :")
+
+# print the list
+# st.sidebar.write(dir_list)
+
+# fd = "GFG.txt"
+
+# popen() is similar to open()
+# file = open(fd, 'w')
+# file.write("Hello")
+# file.close()
+# file = open(fd, 'r')
+# text = file.read()
+# st.sidebar.write(text)
+
+
 # directory = r"c:\temp\uploads"
 # data = {'grant_type':"client_credentials",
 #         'resource':"https://graph.microsoft.com",
@@ -166,8 +256,8 @@ add_selectbox = st.sidebar.selectbox(
 # raise SystemExit
 
 
-ACCESS_KEY = 'XXXXXXXXXXXXXXXXXXXXXXX'
-SECRET_KEY = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
+# ACCESS_KEY = ''
+# SECRET_KEY = ''
 
 
 # def upload_to_aws(local_file, bucket, s3_file):
@@ -191,14 +281,14 @@ SECRET_KEY = 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
 
 def color_negative_red(value):
 
-    if value < 0:
+    if value > 3:
         color = 'red'
     elif value > 0:
-        color = 'green'
+        color = 'lightgreen'
     else:
         color = 'black'
 
-    return 'color: %s' % color
+    return 'background-color: %s' % color
 
 
 def value_loc(value, df):
@@ -295,6 +385,56 @@ with st.container():
         # filt2
         # myfile = myfiler.loc[filt2]
         radiofile = myfiler.set_index('Radio module')
+
+        # # Mongo DB#### 389 - 436
+
+        # now = datetime.now()
+        # # dd/mm/YY H:M:S
+        # dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+
+        # first_col = radiofile.iloc[:, :1]
+        # first_json = first_col.to_json(orient="records")
+
+        # print(f"----TO JSON---")
+        # radiojson = radiofile.to_json(orient="records")
+        # # print(radiojson)
+        # # data_dict = radioofile.to_dict("records")
+        # company.create_index(keys=[("Technology", pymongo.ASCENDING),
+        #                            ("timestamp", pymongo.ASCENDING)],
+        #                      unique=True,
+        #                      name="new_key")
+        # company.insert_one({"Technology": "Nokia LTE", "firstcol": first_json,
+        #                    "data": radiojson, "timestamp": dt_string})
+
+        # data_from_db = company.find_one({"Technology": "Nokia LTE"})
+        # inradiojson = data_from_db["data"]
+        # firstradiojson = data_from_db["firstcol"]
+        # # df.set_index("Date",inplace=True)
+        # print(f"--IN JSON--")
+        # fjson = pd.read_json(inradiojson, orient='records')
+        # colonejson = pd.read_json(firstradiojson, orient='records')
+        # radiodbfile = fjson.set_index('Radio module')
+        # radiodbfile = radiodbfile.applymap(
+        #     lambda x: '0.0' if (x == '0') else x)
+        # # fjson.head(100)
+        # # colonejson
+        # # print(inradiojson)
+        # # myfiler.head(100)
+        # # radiodbfile.head(100)
+
+        # print(f"DIFFERECE..")
+
+        # differencedf = radiofile[~radiofile.apply(
+        #     tuple, 1).isin(radiodbfile.apply(tuple, 1))]
+        # # print(radioofile)
+        # # radiodbfile.head(100)
+        # print(differencedf.shape)
+        # print("Collection:", company)
+        # items = company.find()
+        # items = list(items)
+
+        # # END of MongoDB stuff
+        # #############
         grouped = radiofile.groupby('RX carrier')
         # st.write(radiofile)
         rxlist = radiofile['RX carrier'].unique().tolist()
@@ -605,21 +745,73 @@ with st.container():
         flat_list[:] = [x for x in flat_list if "0|0" not in x]
         print(flat_list)
 
+        dffstyle = df.style.apply(lambda x: [f"background-color: {bg_color(v, flat_list)}" for v in x],
+                                  subset=["ANT2 DI Cause", "ANT1 DI Cause", "ANT3 DI Cause", "ANT4 DI Cause", ">3db Failures"], axis=1)\
+            .applymap(color_negative, color='red', subset="Average DI")
+
         st.write(
             f"*Capture Time Range*: :point_right: [{starttime}] to [{endtime}]")
-        st.table(df.style.apply(lambda x: [f"background: {bg_color(v, flat_list)}" for v in x],
-                                subset=["ANT2 DI Cause", "ANT1 DI Cause", "ANT3 DI Cause", "ANT4 DI Cause", ">3db Failures"], axis=1)
+        st.table(df.style.set_caption("Summary for RTWP LTE (Copyright \
+                Integer Telecom)").apply(lambda x: [f"background-color: {bg_color(v, flat_list)}" for v in x],
+                                         subset=["ANT2 DI Cause", "ANT1 DI Cause", "ANT3 DI Cause", "ANT4 DI Cause", ">3db Failures"], axis=1)
                  .applymap(color_negative, color='red', subset="Average DI"))
 
-        # st.map(df)
+        styles = [
+            dict(selector="tr:hover",
+                 props=[("background-color", "#f4f4f4")]),
+            dict(selector="th", props=[("color", "#fada5e"),
+                                       ("border", "1px solid #eee"),
+                                       ("padding", "12px 35px"),
+                                       ("border-collapse", "collapse"),
+                                       ("background-color", "#00cccc"),
+                                       ("text-transform", "uppercase"),
+                                       ("font-size", "18px")
+                                       ]),
+            dict(selector="td", props=[("color", "#999"),
+                                       ("border", "1px solid #eee"),
+                                       ("padding", "12px 35px"),
+                                       ("border-collapse", "collapse"),
+                                       ("font-size", "15px")
+                                       ]),
+            dict(selector="table", props=[
+                ("font-family", 'Arial'),
+                ("margin", "25px auto"),
+                ("border-collapse", "collapse"),
+                ("border", "1px solid #eee"),
+                ("border-bottom", "2px solid #00cccc"),
+            ]),
+            dict(selector="caption", props=[("caption-side", "bottom")])
+        ]
 
-        # st.write(df)
+        dffstyle = df.style.set_caption("Nokia LTE (Made \
+                in Pandas)").applymap(color_negative_red, subset=["Average DI"]).apply(lambda x: [f"background-color: {bg_color(v, flat_list)}" for v in x],
+                                                                                       subset=["ANT2 DI Cause", "ANT1 DI Cause", "ANT3 DI Cause", "ANT4 DI Cause", ">3db Failures"], axis=1)
+        # st.table(df.style.set_caption("Image by Author (Made \
+        # in Pandas)").applymap(color_negative_red, subset=["Average DI"]).apply(lambda x: [f"background-color: {bg_color(v, flat_list)}" for v in x],
+        #    subset=["ANT2 DI Cause", "ANT1 DI Cause", "ANT3 DI Cause", "ANT4 DI Cause", ">3db Failures"], axis=1))
+        # dffstyle.hide_index().to_excel(
+        # f"C:\\Users\\bramh\\Documents\\Downloads\\{siteid}_Output_summary.xlsx", engine='xlsxwriter')
+        # read_dff = pd.read_excel(
+        # f"C:\\Users\\bramh\\Documents\\Downloads\\{siteid}_Output_summary.xlsx", index_col=0)
+
+        # st.table(read_dff)
+
         @st.cache
         def convert_df(df):
             # IMPORTANT: Cache the conversion to prevent computation on every rerun
-            return df.to_csv().encode('utf-8')
+            writer = pd.ExcelWriter(
+                f"C:\\Users\\bramh\\Documents\\Downloads\\{siteid}_Output_summary.xlsx", engine='xlsxwriter')
+            dff = df.to_excel(writer)
+            return dff
 
-        csv = convert_df(df)
+        # create_git_file(dffstyle.hide_index().to_excel(f"{siteid}_Output_summary.xlsx"),
+            # f"{siteid}_Output_summary.xlsx")
+        with pd.ExcelWriter(f"{cwd}\\{siteid}_Output_summary.xlsx") as xlwriter:
+
+            dffstyle.hide_index().to_excel(
+                xlwriter, engine='xlsxwriter', index=False)
+
+        # csv = convert_df(read_dff)
 
         # with st.form("my_form"):
         #     st.write("Inside the form")
@@ -633,9 +825,62 @@ with st.container():
 
         # st.write("Outside the form")
 
-        st.download_button(
-            label="Download data as CSV",
-            data=csv,
-            file_name=f"{siteid}_Output_summary.csv",
-            mime='text/csv',
-        )
+        # st.download_button(
+        # label="Download data as XLS",
+        # data=pd.read_excel(
+        # f"C:\\Users\\bramh\\Documents\\Downloads\\{siteid}_Output_summary.xlsx", index_col=0),
+        # file_name=f"{siteid}_Output_summary.xls",
+        # mime='application/vnd.ms-excel',
+        # writer = pd.ExcelWriter(file_name, engine='xlsxwriter')
+        # )
+
+        # st.download_button(
+        # label="Download data as Excel",
+        # data=dffstyle.hide_index().to_excel(
+        # f"C:\\Users\\bramh\\Documents\\{siteid}_Output_summary.xlsx", engine='xlsxwriter').encode('utf-8'),
+        # file_name=f"C:\\Users\\bramh\\Documents\\{siteid}_Output_summary.xlsx",
+        # mime='application/vnd.ms-excel',
+        # )
+
+        # Using the "with" syntax
+        # form = st.form(key='my-form')
+        # # filename = st.file_picker(
+        # # "Pick a file", folder="C:\\", type=("xls", "xlsx"))
+        # name = form.text_input(
+        #     f"File Name", value=f"C:\\Users\\bramh\\Documents\\{siteid}_Output_summary.xlsx")
+        # submit = form.form_submit_button('Download as Excel')
+
+        # # st.write('Press button to download file as Excel')
+
+        # if submit:
+        #     st.write(f"Downloaded  :point_right: **{name}**")
+        #     # st.write(f'Downloaded {name}')
+        #     dffstyle.hide_index().to_excel(
+        #         name, engine='xlsxwriter')
+        with open(f"{cwd}\\{siteid}_Output_summary.xlsx", 'rb') as my_file:
+            st.download_button(label='Download as Excel', data=my_file, file_name=f"{siteid}_Output_summary.xlsx",
+                               mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+
+        # col1, col2 = st.columns(2)
+
+        # with col1:
+        #     with st.form('Form1'):
+        #         st.selectbox('Select Technology', ['LTE', 'NR'], key=1)
+        #         st.slider(label='Select intensity',
+        #                   min_value=0, max_value=100, key=4)
+        #         submitted1 = st.form_submit_button('Submit 1')
+
+        # with col2:
+        #     with st.form('Form2'):
+        #         st.selectbox('Select Type', ['VSWR', 'RTWP'], key=2)
+        #         st.slider(label='Select Intensity',
+        #                   min_value=0, max_value=100, key=3)
+        #         submitted2 = st.form_submit_button('Submit 2')
+
+        # towrite = io.BytesIO()
+        # downloaded_file = dffstyle.to_excel(
+            # towrite, encoding='utf-8', index=False, header=True)
+        # towrite.seek(0)  # reset pointer
+        # b64 = base64.b64encode(towrite.read()).decode()  # some strings
+        # linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="myfilename.xlsx">Download excel file</a>'
+        # st.markdown(linko, unsafe_allow_html=True)
