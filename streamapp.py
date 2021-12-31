@@ -10,6 +10,8 @@ from itertools import chain
 import base64
 import io
 import xlsxwriter
+from io import BytesIO
+from pyxlsb import open_workbook as open_xlsb
 # import pymongo
 # from pymongo import MongoClient
 from datetime import datetime
@@ -843,20 +845,20 @@ with st.container():
         # )
 
         # Using the "with" syntax
-        form = st.form(key='my-form')
+        # form = st.form(key='my-form')
         # filename = st.file_picker(
         # "Pick a file", folder=f"{cwd}", type=("xls", "xlsx"))
-        name = form.text_input(
-            f"**File Name**", value=f"{cwd}\\{siteid}_Output_summary.xlsx")
-        submit = form.form_submit_button('Download as Excel')
+        # name = form.text_input(
+            # f"**File Name**", value=f"{cwd}\\{siteid}_Output_summary.xlsx")
+        # submit = form.form_submit_button('Download as Excel')
 
         # st.write('Press button to download file as Excel')
 
-        if submit:
-            st.write(f"Downloaded  :point_right: **{name}**")
+        # if submit:
+            # st.write(f"Downloaded  :point_right: **{name}**")
             # st.write(f'Downloaded {name}')
-            dffstyle.hide_index().to_excel(
-                name, engine='xlsxwriter')
+            # dffstyle.hide_index().to_excel(
+            # name, engine='xlsxwriter')
 
         # with open(f"{cwd}\\{siteid}_Output_summary.xlsx", 'rb') as my_file:
             # st.download_button(label='Download as Excel', data=my_file, file_name=f"{siteid}_Output_summary.xlsx",
@@ -885,3 +887,19 @@ with st.container():
         # b64 = base64.b64encode(towrite.read()).decode()  # some strings
         # linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="myfilename.xlsx">Download excel file</a>'
         # st.markdown(linko, unsafe_allow_html=True)
+
+        def to_excel(df):
+            output = BytesIO()
+            writer = pd.ExcelWriter(output, engine='xlsxwriter')
+            df.hide_index().to_excel(writer, index=False)
+            workbook = writer.book
+            # worksheet = writer.sheets['Sheet1']
+            format1 = workbook.add_format({'num_format': '0.00'})
+            # worksheet.set_column('A:A', None, format1)
+            writer.save()
+            processed_data = output.getvalue()
+            return processed_data
+        df_xlsx = to_excel(dffstyle)
+        st.download_button(label='📥 Download As Excel',
+                           data=df_xlsx,
+                           file_name=f'{siteid}_Output_summary.xlsx')
