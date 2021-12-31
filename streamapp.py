@@ -835,31 +835,32 @@ with st.container():
         # )
 
         # st.download_button(
-        # label="Download data as Excel",
-        # data=dffstyle.hide_index().to_excel(
-        # f"C:\\Users\\bramh\\Documents\\{siteid}_Output_summary.xlsx", engine='xlsxwriter').encode('utf-8'),
-        # file_name=f"C:\\Users\\bramh\\Documents\\{siteid}_Output_summary.xlsx",
-        # mime='application/vnd.ms-excel',
+            # label="Download data as Excel",
+            # data=dffstyle.hide_index().to_excel(
+            # f"{cwd}\\{siteid}_Output_summary.xlsx", engine='xlsxwriter').encode('utf-8'),
+            # file_name=f"C:\\Users\\bramh\\Documents\\{siteid}_Output_summary.xlsx",
+            # mime='application/vnd.ms-excel',
         # )
 
         # Using the "with" syntax
-        # form = st.form(key='my-form')
-        # # filename = st.file_picker(
-        # # "Pick a file", folder="C:\\", type=("xls", "xlsx"))
-        # name = form.text_input(
-        #     f"File Name", value=f"C:\\Users\\bramh\\Documents\\{siteid}_Output_summary.xlsx")
-        # submit = form.form_submit_button('Download as Excel')
+        form = st.form(key='my-form')
+        # filename = st.file_picker(
+        # "Pick a file", folder=f"{cwd}", type=("xls", "xlsx"))
+        name = form.text_input(
+            f"**File Name**", value=f"{cwd}\\{siteid}_Output_summary.xlsx")
+        submit = form.form_submit_button('Download as Excel')
 
-        # # st.write('Press button to download file as Excel')
+        # st.write('Press button to download file as Excel')
 
-        # if submit:
-        #     st.write(f"Downloaded  :point_right: **{name}**")
-        #     # st.write(f'Downloaded {name}')
-        #     dffstyle.hide_index().to_excel(
-        #         name, engine='xlsxwriter')
-        with open(f"{cwd}\\{siteid}_Output_summary.xlsx", 'rb') as my_file:
-            st.download_button(label='Download as Excel', data=my_file, file_name=f"{siteid}_Output_summary.xlsx",
-                               mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        if submit:
+            st.write(f"Downloaded  :point_right: **{name}**")
+            # st.write(f'Downloaded {name}')
+            dffstyle.hide_index().to_excel(
+                name, engine='xlsxwriter')
+
+        # with open(f"{cwd}\\{siteid}_Output_summary.xlsx", 'rb') as my_file:
+            # st.download_button(label='Download as Excel', data=my_file, file_name=f"{siteid}_Output_summary.xlsx",
+            #    mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
         # col1, col2 = st.columns(2)
 
