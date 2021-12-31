@@ -806,10 +806,10 @@ with st.container():
 
         # create_git_file(dffstyle.hide_index().to_excel(f"{siteid}_Output_summary.xlsx"),
             # f"{siteid}_Output_summary.xlsx")
-        with pd.ExcelWriter(f"{cwd}\\{siteid}_Output_summary.xlsx") as xlwriter:
+        # with pd.ExcelWriter(f"{cwd}\\{siteid}_Output_summary.xlsx") as xlwriter:
 
-            dffstyle.hide_index().to_excel(
-                xlwriter, engine='xlsxwriter', index=False)
+            # dffstyle.hide_index().to_excel(
+            # xlwriter, engine='xlsxwriter', index=False)
 
         # csv = convert_df(read_dff)
 
