@@ -7,3 +7,6 @@ boto==2.49.0
 pymongo==4.0.1
 XlsxWriter==3.0.2
 pyxlsb==1.0.9
+streamlit-authenticator==0.1.0
+google-cloud-core==2.2.1
+google-cloud-firestore==2.3.4
