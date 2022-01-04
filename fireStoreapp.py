@@ -14,7 +14,7 @@ from pyxlsb import open_workbook as open_xlsb
 
 # Authenticate to Firestore with the JSON account key.
 db = firestore.Client.from_service_account_json("firestore-key.json")
-database = 'Nokiadbprod'
+dtbase = 'Nokiadbprod'
 # import json
 # key_dict = json.loads(st.secrets["textkey"])
 # st.sidebar.write(key_dict)
@@ -35,7 +35,7 @@ database = 'Nokiadbprod'
 # radiojson = radiofile.to_json(orient="records")
 # print(radiojson)
 # data_dict = radioofile.to_dict("records")
-# doc_ref = db.collection(u'{database}').document(u'LTE')
+# doc_ref = db.collection(u'Nokiadbprod').document(u'LTE')
 # doc_ref.set({
 #     u'Technology': u'Nokia LTE',
 #     u'firstcol': first_json,
@@ -43,7 +43,7 @@ database = 'Nokiadbprod'
 #     "timestamp": dt_string
 # })
 
-nokia_ref = db.collection(u'{database}')
+nokia_ref = db.collection(u'Nokiadbprod')
 
 nokiadoc = nokia_ref.get()
 
@@ -105,7 +105,7 @@ def app():
     # st.write('You selected Site:', siteselected.rstrip().lstrip())
     # st.write('You selected Time Stamp:', timestampp)
 
-    doc_ref = db.collection(u'{database}').document(
+    doc_ref = db.collection(u'Nokiadbprod').document(
         u'PH23909B->2021-12-31 19:19:49.007444')
 
     doc = doc_ref.get()
@@ -115,7 +115,7 @@ def app():
     # st.write(u'No such document!')
 
     # Note: Use of CollectionRef stream() is prefered to get()
-    doks = db.collection(u'{database}').where(
+    doks = db.collection(u'Nokiadbprod').where(
         u'site_id', u'==', siteselected.rstrip().lstrip()).where(u'timestamp', u'==', timestampp).stream()
 
     for doc in doks:
@@ -631,7 +631,7 @@ def app():
                            data=df_xlsx,
                            file_name=f'{siteid}_Output_summary.xlsx')
 
-    # doc_reffer = db.collection(u'{database}')
+    # doc_reffer = db.collection(u'Nokiadbprod')
 
     # sites = doc_reffer.where(
         # u'site_id', u'==', siteselected).stream()
