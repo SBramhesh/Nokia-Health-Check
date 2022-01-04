@@ -292,10 +292,8 @@ def color_negative_red(value):
 
     if value > 3:
         color = 'red'
-    elif value > 0:
-        color = 'lightgreen'
     else:
-        color = 'black'
+        color = 'lightgreen'
 
     return 'background-color: %s' % color
 

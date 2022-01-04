@@ -52,10 +52,8 @@ def color_negative_red(value):
 
     if value > 3:
         color = 'red'
-    elif value > 0:
-        color = 'lightgreen'
     else:
-        color = 'black'
+        color = 'lightgreen'
 
     return 'background-color: %s' % color
 
@@ -81,6 +79,7 @@ def app():
     nokiaoptions = []
     for doc in nokia_ref.stream():
         nokia = doc.to_dict()
+        # st.sidebar.write(nokia["site_id"])
         timestamp = nokia["timestamp"]
         technology = nokia["Technology"]
         data = nokia["data"]
@@ -115,11 +114,13 @@ def app():
     # st.write(u'No such document!')
 
     # Note: Use of CollectionRef stream() is prefered to get()
+    # st.sidebar.write(siteselected)
     doks = db.collection(u'Nokiadbprod').where(
         u'site_id', u'==', siteselected.rstrip().lstrip()).where(u'timestamp', u'==', timestampp).stream()
-
+    selectedsite = ""
     for doc in doks:
         # st.write(f'{doc.id} => {doc.to_dict()}')
+        selectedsite = doc.to_dict()["site_id"]
         inradiojson = doc.to_dict()["data"]
         fradiojson = doc.to_dict()["firstcol"]
         fjson = pd.read_json(inradiojson, orient='records')
@@ -629,7 +630,7 @@ def app():
         df_xlsx = to_excel(dffstyle)
         st.download_button(label='📥 Download As Excel',
                            data=df_xlsx,
-                           file_name=f'{siteid}_Output_summary.xlsx')
+                           file_name=f'{selectedsite}_Output_summary.xlsx')
 
     # doc_reffer = db.collection(u'Nokiadbprod')
 
