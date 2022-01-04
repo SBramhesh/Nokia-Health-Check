@@ -14,7 +14,7 @@ from pyxlsb import open_workbook as open_xlsb
 
 # Authenticate to Firestore with the JSON account key.
 db = firestore.Client.from_service_account_json("firestore-key.json")
-database = f"Nokiadbprod"
+database = 'Nokiadbprod'
 # import json
 # key_dict = json.loads(st.secrets["textkey"])
 # st.sidebar.write(key_dict)
