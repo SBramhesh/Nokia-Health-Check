@@ -496,7 +496,7 @@ def app():
 
             def lastpercent(s):
                 if type(s) is str:
-                    return s[-1] == '%'
+                    return s[-1] == '%' or s[-2] == '%'
                 else:
                     return 0
 
@@ -600,16 +600,25 @@ def app():
                 prefix = bandtype(char)
                 return prefix
 
-            def antlistnum(countzero, countone, counttwo, countthree):
-
-                ant1_di_cause.append(
-                    f"{countzero}|{np.around((countzero/no_of_readings)*100,0)}%")
-                ant2_di_cause.append(
-                    f"{countone}|{np.around((countone/no_of_readings)*100,0)}%")
-                ant3_di_cause.append(
-                    f"{counttwo}|{np.around((counttwo/no_of_readings)*100,0)}%")
-                ant4_di_cause.append(
-                    f"{countthree}|{np.around((countthree/no_of_readings)*100,0)}%")
+            def antlistnum(meandif, countzero, countone, counttwo, countthree):
+                if meandif > 2.99:
+                    ant1_di_cause.append(
+                        " ".join([f"{countzero}|{np.around((countzero/no_of_readings)*100,0)}%", ""]))
+                    ant2_di_cause.append(
+                        " ".join([f"{countone}|{np.around((countone/no_of_readings)*100,0)}%", ""]))
+                    ant3_di_cause.append(
+                        " ".join([f"{counttwo}|{np.around((counttwo/no_of_readings)*100,0)}%", ""]))
+                    ant4_di_cause.append(
+                        " ".join([f"{countthree}|{np.around((countthree/no_of_readings)*100,0)}%", ""]))
+                else:
+                    ant1_di_cause.append(
+                        f"{countzero}|{np.around((countzero/no_of_readings)*100,0)}%")
+                    ant2_di_cause.append(
+                        f"{countone}|{np.around((countone/no_of_readings)*100,0)}%")
+                    ant3_di_cause.append(
+                        f"{counttwo}|{np.around((counttwo/no_of_readings)*100,0)}%")
+                    ant4_di_cause.append(
+                        f"{countthree}|{np.around((countthree/no_of_readings)*100,0)}%")
 
             absmin = -1000
             sectorradiolist = []
@@ -701,7 +710,7 @@ def app():
                 print(countthree)
                 print('---------')
 
-                antlistnum(countzero, countone, counttwo, countthree)
+                # antlistnum(countzero, countone, counttwo, countthree)
                 dffdit = dffdi.T
             #     dffd3 =  dffdi.loc['max'] - dffdi.loc['min']
             #     dffnew = dffdit[dffdit.columns.difference(['max', 'min'])]
@@ -718,6 +727,8 @@ def app():
                 # minlist = max(list(dff.iloc[:, 2:-1].max()))
                 minlist = max(list(dff.iloc[:, 2:-1].astype(float).max()))
                 avgdilist.append(np.around((meandif), 1))
+
+                antlistnum(meandif, countzero, countone, counttwo, countthree)
 
             #     dffd3['Avg']= 0
             #     shape = dffdit.shape
@@ -736,8 +747,12 @@ def app():
             #     print(meandif)
                 # print(count)
                 # print(f'{count*4}%')
-                grtthreelist.append(
-                    f"{count}|{np.around((count/no_of_readings)*100,0)}%")
+                if meandif > 2.99:
+                    grtthreelist.append(
+                        " ".join([f"{count}|{np.around((count/no_of_readings)*100,0)}%", ""]))
+                else:
+                    grtthreelist.append(
+                        f"{count}|{np.around((count/no_of_readings)*100,0)}%")
             #     print(dffd3)
                 # print('----------')
             # odff.head(30)
@@ -944,3 +959,6 @@ def app():
             st.download_button(label='📥 Download As Excel',
                                data=df_xlsx,
                                file_name=f'{siteid}_Output_summary.xlsx')
+
+
+app()

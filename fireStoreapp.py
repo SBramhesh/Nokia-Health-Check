@@ -14,6 +14,7 @@ from pyxlsb import open_workbook as open_xlsb
 
 # Authenticate to Firestore with the JSON account key.
 db = firestore.Client.from_service_account_json("firestore-key.json")
+database = f"Nokiadbprod"
 # import json
 # key_dict = json.loads(st.secrets["textkey"])
 # st.sidebar.write(key_dict)
@@ -34,7 +35,7 @@ db = firestore.Client.from_service_account_json("firestore-key.json")
 # radiojson = radiofile.to_json(orient="records")
 # print(radiojson)
 # data_dict = radioofile.to_dict("records")
-# doc_ref = db.collection(u'Nokiadb').document(u'LTE')
+# doc_ref = db.collection(u'{database}').document(u'LTE')
 # doc_ref.set({
 #     u'Technology': u'Nokia LTE',
 #     u'firstcol': first_json,
@@ -42,7 +43,7 @@ db = firestore.Client.from_service_account_json("firestore-key.json")
 #     "timestamp": dt_string
 # })
 
-nokia_ref = db.collection(u'Nokiadbprod')
+nokia_ref = db.collection(u'{database}')
 
 nokiadoc = nokia_ref.get()
 
@@ -71,7 +72,7 @@ def color_negative_red(value):
 def app():
     hide_st_style = """
             <style>
-            #MainMenu {visibility: hidden;}
+            # MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
             header {visibility: hidden;}
             </style>
@@ -104,7 +105,7 @@ def app():
     # st.write('You selected Site:', siteselected.rstrip().lstrip())
     # st.write('You selected Time Stamp:', timestampp)
 
-    doc_ref = db.collection(u'Nokiadbprod').document(
+    doc_ref = db.collection(u'{database}').document(
         u'PH23909B->2021-12-31 19:19:49.007444')
 
     doc = doc_ref.get()
@@ -114,7 +115,7 @@ def app():
     # st.write(u'No such document!')
 
     # Note: Use of CollectionRef stream() is prefered to get()
-    doks = db.collection(u'Nokiadbprod').where(
+    doks = db.collection(u'{database}').where(
         u'site_id', u'==', siteselected.rstrip().lstrip()).where(u'timestamp', u'==', timestampp).stream()
 
     for doc in doks:
@@ -159,7 +160,7 @@ def app():
 
         def lastpercent(s):
             if type(s) is str:
-                return s[-1] == '%'
+                return s[-1] == '%' or s[-2] == '%'
             else:
                 return 0
 
@@ -263,16 +264,28 @@ def app():
             prefix = bandtype(char)
             return prefix
 
-        def antlistnum(countzero, countone, counttwo, countthree):
+        def antlistnum(meandif, countzero, countone, counttwo, countthree):
+            zerostring = f"{countzero}|{np.around((countzero/no_of_readings)*100,0)}%"
+            zstring = " ".join([zerostring, ""])
 
-            ant1_di_cause.append(
-                f"{countzero}|{np.around((countzero/no_of_readings)*100,0)}%")
-            ant2_di_cause.append(
-                f"{countone}|{np.around((countone/no_of_readings)*100,0)}%")
-            ant3_di_cause.append(
-                f"{counttwo}|{np.around((counttwo/no_of_readings)*100,0)}%")
-            ant4_di_cause.append(
-                f"{countthree}|{np.around((countthree/no_of_readings)*100,0)}%")
+            if meandif > 2.99:
+                ant1_di_cause.append(
+                    " ".join([f"{countzero}|{np.around((countzero/no_of_readings)*100,0)}%", ""]))
+                ant2_di_cause.append(
+                    " ".join([f"{countone}|{np.around((countone/no_of_readings)*100,0)}%", ""]))
+                ant3_di_cause.append(
+                    " ".join([f"{counttwo}|{np.around((counttwo/no_of_readings)*100,0)}%", ""]))
+                ant4_di_cause.append(
+                    " ".join([f"{countthree}|{np.around((countthree/no_of_readings)*100,0)}%", ""]))
+            else:
+                ant1_di_cause.append(
+                    f"{countzero}|{np.around((countzero/no_of_readings)*100,0)}%")
+                ant2_di_cause.append(
+                    f"{countone}|{np.around((countone/no_of_readings)*100,0)}%")
+                ant3_di_cause.append(
+                    f"{counttwo}|{np.around((counttwo/no_of_readings)*100,0)}%")
+                ant4_di_cause.append(
+                    f"{countthree}|{np.around((countthree/no_of_readings)*100,0)}%")
 
         absmin = -1000
         sectorradiolist = []
@@ -301,7 +314,7 @@ def app():
         for i in rxlistminusYZ:
 
             dff = grouped.get_group(i)
-            # print(f'value of i is..{i}')
+            print(f'value of i is..{i}')
         #     print(dff.index[0])
 
             # print('index value is..')
@@ -316,7 +329,12 @@ def app():
             dff['Avg'] = np.around(dff.iloc[:, 2:].astype(
                 float).sum(axis=1)/no_of_readings, 1)
             # print(f"dff average.. {dff.iloc[1,-1]}")
-            avg_ant1.append(np.around(dff.iloc[0, -1].astype(float), 1))
+            print(f"Dash value is...{dff.iloc[0, -1]}")
+            if dff.iloc[0, -1].astype(float) == 0.0:
+                avg_ant1.append(0.0)
+            else:
+                avg_ant1.append(np.around(dff.iloc[0, -1].astype(float), 1))
+
             avg_ant2.append(np.around(dff.iloc[1, -1].astype(float), 1))
             avg_ant3.append(np.around(dff.iloc[2, -1].astype(float), 1))
             avg_ant4.append(np.around(dff.iloc[3, -1].astype(float), 1))
@@ -364,7 +382,6 @@ def app():
             print(countthree)
             print('---------')
 
-            antlistnum(countzero, countone, counttwo, countthree)
             dffdit = dffdi.T
         #     dffd3 =  dffdi.loc['max'] - dffdi.loc['min']
         #     dffnew = dffdit[dffdit.columns.difference(['max', 'min'])]
@@ -381,6 +398,7 @@ def app():
             # minlist = max(list(dff.iloc[:, 2:-1].max()))
             minlist = max(list(dff.iloc[:, 2:-1].astype(float).max()))
             avgdilist.append(np.around((meandif), 1))
+            antlistnum(meandif, countzero, countone, counttwo, countthree)
 
         #     dffd3['Avg']= 0
         #     shape = dffdit.shape
@@ -399,8 +417,12 @@ def app():
         #     print(meandif)
             # print(count)
             # print(f'{count*4}%')
-            grtthreelist.append(
-                f"{count}|{np.around((count/no_of_readings)*100,0)}%")
+            if meandif > 2.99:
+                grtthreelist.append(
+                    " ".join([f"{count}|{np.around((count/no_of_readings)*100,0)}%", ""]))
+            else:
+                grtthreelist.append(
+                    f"{count}|{np.around((count/no_of_readings)*100,0)}%")
         #     print(dffd3)
             # print('----------')
         # odff.head(30)
@@ -503,7 +525,7 @@ def app():
 
         # st.table(read_dff)
 
-        @st.cache
+        @ st.cache
         def convert_df(df):
             # IMPORTANT: Cache the conversion to prevent computation on every rerun
             writer = pd.ExcelWriter(
@@ -609,7 +631,7 @@ def app():
                            data=df_xlsx,
                            file_name=f'{siteid}_Output_summary.xlsx')
 
-    # doc_reffer = db.collection(u'Nokiadb')
+    # doc_reffer = db.collection(u'{database}')
 
     # sites = doc_reffer.where(
         # u'site_id', u'==', siteselected).stream()

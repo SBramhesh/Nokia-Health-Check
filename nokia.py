@@ -15,7 +15,7 @@ hide_st_style = """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 names = ['Nokia User', 'Integer User']
 usernames = ['Nokia', 'Integer']
-passwords = ['123', '456']
+passwords = ['Nokia123', 'Nokia456']
 hashed_passwords = stauth.hasher(passwords).generate()
 
 authenticator = stauth.authenticate(names, usernames, hashed_passwords,
@@ -29,7 +29,8 @@ if authentication_status:
         "Files Processed (Raw Data + Summary)": fireStoreapp
     }
     st.sidebar.title('Nokia Main Menu')
-    selection = st.sidebar.radio("Go to", list(PAGES.keys()))
+    selection = st.sidebar.radio(
+        f"Navigate to:", list(PAGES.keys()))
     page = PAGES[selection]
     page.app()
 elif authentication_status == False:
