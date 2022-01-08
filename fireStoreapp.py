@@ -7,6 +7,7 @@ import copy
 import numpy as np
 import hashlib
 from itertools import chain
+from vswrapp import process_vswr
 import io
 import xlsxwriter
 from io import BytesIO
@@ -14,7 +15,7 @@ from pyxlsb import open_workbook as open_xlsb
 
 # Authenticate to Firestore with the JSON account key.
 db = firestore.Client.from_service_account_json("firestore-key.json")
-dtbase = 'Nokiadbprod'
+dbname = 'Nokiadbprod'
 # import json
 # key_dict = json.loads(st.secrets["textkey"])
 # st.sidebar.write(key_dict)
@@ -35,7 +36,7 @@ dtbase = 'Nokiadbprod'
 # radiojson = radiofile.to_json(orient="records")
 # print(radiojson)
 # data_dict = radioofile.to_dict("records")
-# doc_ref = db.collection(u'Nokiadbprod').document(u'LTE')
+# doc_ref = db.collection(u'{dbname}').document(u'LTE')
 # doc_ref.set({
 #     u'Technology': u'Nokia LTE',
 #     u'firstcol': first_json,
@@ -43,7 +44,7 @@ dtbase = 'Nokiadbprod'
 #     "timestamp": dt_string
 # })
 
-nokia_ref = db.collection(u'Nokiadbprod')
+nokia_ref = db.collection(dbname)
 
 nokiadoc = nokia_ref.get()
 
@@ -104,7 +105,7 @@ def app():
     # st.write('You selected Site:', siteselected.rstrip().lstrip())
     # st.write('You selected Time Stamp:', timestampp)
 
-    doc_ref = db.collection(u'Nokiadbprod').document(
+    doc_ref = db.collection(dbname).document(
         u'PH23909B->2021-12-31 19:19:49.007444')
 
     doc = doc_ref.get()
@@ -115,19 +116,27 @@ def app():
 
     # Note: Use of CollectionRef stream() is prefered to get()
     # st.sidebar.write(siteselected)
-    doks = db.collection(u'Nokiadbprod').where(
+    doks = db.collection(dbname).where(
         u'site_id', u'==', siteselected.rstrip().lstrip()).where(u'timestamp', u'==', timestampp).stream()
     selectedsite = ""
     for doc in doks:
         # st.write(f'{doc.id} => {doc.to_dict()}')
         selectedsite = doc.to_dict()["site_id"]
         inradiojson = doc.to_dict()["data"]
+        if "vswr" in doc.to_dict():
+            vswrjson = doc.to_dict()["vswr"]
+            vswr_json = pd.read_json(vswrjson, orient='records')
+            df_vswr = process_vswr(vswr_json)
         fradiojson = doc.to_dict()["firstcol"]
         fjson = pd.read_json(inradiojson, orient='records')
         firstcol = pd.read_json(fradiojson, orient='records')
         # radiodbfile = fjson.set_index('Radio module')
         radiodbfile = fjson.applymap(
             lambda x: '0.0' if (x == '0') else x)
+        # vswrdbfile = vswr_json.applymap(
+        # lambda x: '0.0' if (x == '0') else x)
+        # st.sidebar.table(vswrdbfile)
+
         st.write(
             f"*Raw Data*: :point_down:")
         st.table(radiodbfile.head(100))
@@ -159,6 +168,12 @@ def app():
 
             return int(hashlib.sha1(s.encode("utf-8")).hexdigest(), 16) % (10 ** 8)
 
+        def lastpercent_vswr(s):
+            if type(s) is str and len(s) > 2:
+                return s[-2] == '%'
+            else:
+                return 0
+
         def lastpercent(s):
             if type(s) is str:
                 return s[-1] == '%' or s[-2] == '%'
@@ -171,6 +186,20 @@ def app():
                 return "red"
         #     elif (lastpercent(v) and hashfunc(v) == 62282978):
         #         return "lightgreen"
+            else:
+                return "lightgreen"
+
+        def lastpercent_yellow(s):
+            if type(s) is str and len(s) > 2:
+                return s[-3] == '%'
+            else:
+                return 0
+
+        def bg_vswr_color(v):
+            if (lastpercent_vswr(v) and hashfunc(v) != 62282978):
+                return "red"
+            elif (lastpercent_yellow(v) and hashfunc(v) != 62282978):
+                return "yellow"
             else:
                 return "lightgreen"
 
@@ -477,6 +506,10 @@ def app():
         dffstyle = df.style.apply(lambda x: [f"background-color: {bg_color(v, flat_list)}" for v in x],
                                   subset=["ANT2 DI Cause", "ANT1 DI Cause", "ANT3 DI Cause", "ANT4 DI Cause", ">3db Failures"], axis=1)\
             .applymap(color_negative, color='red', subset="Average DI")
+        if 'df_vswr' in locals():
+            # df_vswr exists.
+            dffstyle_vswr = df_vswr.style.apply(lambda x: [f"background-color: {bg_vswr_color(v)}" for v in x], subset=[
+                "ANT1 VSWR >=1.4", "ANT2 VSWR >=1.4", "ANT3 VSWR >=1.4", "ANT4 VSWR >=1.4"], axis=1)
         st.write(
             f"*Output Summary*: :point_down:")
         st.write(
@@ -485,6 +518,11 @@ def app():
                 Integer Telecom)").apply(lambda x: [f"background-color: {bg_color(v, flat_list)}" for v in x],
                                          subset=["ANT2 DI Cause", "ANT1 DI Cause", "ANT3 DI Cause", "ANT4 DI Cause", ">3db Failures"], axis=1)
                  .applymap(color_negative, color='red', subset="Average DI"))
+        if 'df_vswr' in locals():
+            st.write(
+                f"*VSWR*: :point_down:")
+            st.table(df_vswr.style.set_caption("Summary for VSWR (Copyright \
+                Integer Telecom)").apply(lambda x: [f"background-color: {bg_vswr_color(v)}" for v in x], subset=["ANT1 VSWR >=1.4", "ANT2 VSWR >=1.4", "ANT3 VSWR >=1.4", "ANT4 VSWR >=1.4"], axis=1))
 
         styles = [
             dict(selector="tr:hover",
@@ -616,23 +654,125 @@ def app():
         # linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="myfilename.xlsx">Download excel file</a>'
         # st.markdown(linko, unsafe_allow_html=True)
 
-        def to_excel(df):
+        def get_col_widths(dataframe):
+            # First we find the maximum length of the index column
+            idx_max = max(
+                [len(str(s)) for s in dataframe.index.values] + [len(str(dataframe.index.name))])
+            # st.sidebar.write(dataframe.index.name)
+            len_index = [[s for s in dataframe[col].values]
+                         for col in dataframe.columns]
+            # st.sidebar.write(len_index)
+            # Then, we concatenate this to the max of the lengths of column name and its values for each column, left to right
+            return_list = [idx_max] + [max([len(str(s)) for s in dataframe[col].values] + [
+                                           len(col)]) for col in dataframe.columns]
+            # st.sidebar.write(return_list)
+            return [idx_max] + [max([len(str(s)) for s in dataframe[col].values] + [len(col)]) for col in dataframe.columns]
+
+            # st.sidebar.write(get_col_widths(df1))
+
+        def to_excel(df, df1, df_vswr=None, df2=None):
             output = BytesIO()
             writer = pd.ExcelWriter(output, engine='xlsxwriter')
-            df.hide_index().to_excel(writer, index=False)
+            df = df.set_properties(**{'text-align': 'left'})
+            # df.set_properties(subset=['Average DI'], **{'width': '300px'})
+            # st.table(df)
+            df.to_excel(writer, index=False)
+            # df1.to_excel(writer, sheet_name='Result',
+            #              startrow=1, startcol=0)
+
             workbook = writer.book
-            # worksheet = writer.sheets['Sheet1']
+            worksheet = writer.sheets['Sheet1']
+            vswr_format = workbook.add_format()
+            vswr_format.set_bold()
+            if df_vswr is not None:
+                worksheet.write_string(
+                    df1.shape[0] + 4, 0, 'VSWR', vswr_format)
+                df_vswr.to_excel(writer, sheet_name='Sheet1',
+                                 startrow=df1.shape[0] + 5, startcol=0, index=False)
             format1 = workbook.add_format({'num_format': '0.00'})
+            # Format all the columns.
+            my_format = workbook.add_format(
+                {'align': 'left'})
+            my_format.set_align('left')
+            # my_format.set_text_wrap()
+            cell_format = workbook.add_format(
+                {'bold': True, 'font_color': 'red'})
+
+            # add format for headers
+            header_format = workbook.add_format()
+            # header_format.set_font_name('Bodoni MT Black')
+            # header_format.set_font_color('green')
+            # header_format.set_font_size(24)
+            header_format.set_align('left')
+            header_format.set_text_wrap()
+            header_format.set_bold()
+            # header_format.set_bg_color('yellow')
+
+            # Write the column headers with the defined format.
+            for col_num, value in enumerate(df1.columns.values):
+                worksheet.write(0, col_num, value, header_format)
+
+            # add format for vswr headers
+            header_vswr_format = workbook.add_format()
+            # header_format.set_font_name('Bodoni MT Black')
+            # header_format.set_font_color('green')
+            # header_format.set_font_size(24)
+            header_vswr_format.set_align('left')
+            header_vswr_format.set_text_wrap()
+            header_vswr_format.set_bold()
+
+            if df_vswr is not None:
+                # Write the column headers with the defined format.
+                for col_num, value in enumerate(df2.columns.values):
+                    worksheet.write(len(df1) + 5, col_num,
+                                    value, header_vswr_format)
+
+            # Set the default height of all the rows, efficiently.
+            worksheet.set_default_row(30)
+            # Set the default height of all the columns, efficiently.
+            # worksheet.set_default_column(45)
+
+            # align left
+            format3 = workbook.add_format({'align': 'left'})
+
+            # worksheet.conditional_format('D1:D100', {'type':     'cell',
+            #  'criteria': 'between',
+            #  'minimum':  0,
+            #  'maximum':  30,
+            #  'format':   format3})
+            col_width_list = get_col_widths(df1)
+            col_width_list[0] = 15  # Sector Radio Type
+            col_width_list[2] = 10  # Readings Analyzed
+            col_width_list[3] = 10  # Average DI
+            for i, width in enumerate(col_width_list):
+                worksheet.set_column(i, i, width)
+
+            worksheet.set_row(0, 30)  # Set the height of Row 1 to 30.
             # worksheet.set_column('A:A', None, format1)
+            border_fmt = workbook.add_format(
+                {'bottom': 5, 'top': 5, 'left': 5, 'right': 5})
+            worksheet.conditional_format(xlsxwriter.utility.xl_range(
+                0, 0, len(df1), len(df1.columns) - 1), {'type': 'no_errors', 'format': border_fmt})
+            if df_vswr is not None:
+                worksheet.conditional_format(xlsxwriter.utility.xl_range(
+                    len(df1) + 5, 0, len(df2) + len(df1) + 5, len(df2.columns)), {'type': 'no_errors', 'format': border_fmt})
+            # worksheet.conditional_format(xlsxwriter.utility.xl_range(
+            # 0, 0, 1, len(df1.columns)), {'type': 'no_errors', 'format': my_format})
             writer.save()
             processed_data = output.getvalue()
             return processed_data
-        df_xlsx = to_excel(dffstyle)
+
+        if 'df_vswr' in locals() and 'dffstyle_vswr' in locals():
+            # df_vswr exists.
+            df_xlsx = to_excel(dffstyle, df, dffstyle_vswr, df_vswr)
+        else:
+            df_xlsx = to_excel(dffstyle, df)
+
         st.download_button(label='📥 Download As Excel',
                            data=df_xlsx,
-                           file_name=f'{selectedsite}_Output_summary.xlsx')
+                           file_name=f'{siteid}_Output_summary.xlsx')
 
-    # doc_reffer = db.collection(u'Nokiadbprod')
+    # doc_reffer = db.collection(u'{dbname}')
 
     # sites = doc_reffer.where(
         # u'site_id', u'==', siteselected).stream()

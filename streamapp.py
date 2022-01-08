@@ -3,6 +3,7 @@ import pandas as pd
 import re
 import copy
 import numpy as np
+from vswrapp import process_vswr
 import hashlib
 import requests
 import json
@@ -306,6 +307,9 @@ def value_loc(value, df):
 
 def app():
     with st.container():
+
+        st.header('Nokia Health Check')
+        st.markdown('Please upload  **only excel files**.')
         hide_st_style = """
             <style>
             #MainMenu {visibility: hidden;}
@@ -325,11 +329,16 @@ def app():
             #  string_data = stringio.read()
             #  st.write(string_data)# Can be used wherever a "file-like" object is accepted:
             # excel_read = pd.read_csv(uploaded_file)
+            # st.sidebar.write(type(uploaded_file))
+            # vswr_uploaded_file = uploaded_file
+            # df_vswr = process_vswr(vswr_uploaded_file)
             uploadedfn = uploaded_file.name
             siteid = uploadedfn.split('_')[2][1:]
             st.sidebar.write(f"Site Id: :point_right: *{siteid}*")
             excel_read = pd.read_csv(uploaded_file, skiprows=1, header=None)
             myfiler = excel_read
+            df_vswr = process_vswr(excel_read)
+            # st.sidebar.table(excel_read)
 
             myfile1 = excel_read[excel_read.isin(
                 ['RTWP LTE']).any(axis=1)].index
@@ -402,7 +411,6 @@ def app():
             # filt2
             # myfile = myfiler.loc[filt2]
             radiofile = myfiler.set_index('Radio module')
-            # st.table(myfiler)
 
             # # Firestore DB#### 398 - 422
 
@@ -412,6 +420,7 @@ def app():
 
             first_col = myfiler.iloc[:, :1]
             first_json = first_col.to_json(orient="records")
+            vswr_json = excel_read.to_json(orient="records")
 
             print(f"----TO JSON---")
             radiojson = myfiler.to_json(orient="records")
@@ -424,6 +433,7 @@ def app():
                 u'site_id': siteid,
                 u'firstcol': first_json,
                 u'data': radiojson,
+                u'vswr': vswr_json,
                 "timestamp": dt_string
             })
 
@@ -498,12 +508,32 @@ def app():
                 else:
                     return 0
 
+            def lastpercent_vswr(s):
+                if type(s) is str and len(s) > 2:
+                    return s[-2] == '%'
+                else:
+                    return 0
+
             def bg_color(v, threedlist):
                 #     print(threedlist)
                 if (lastpercent(v) and hashfunc(v) != 62282978 and v in threedlist):
                     return "red"
             #     elif (lastpercent(v) and hashfunc(v) == 62282978):
             #         return "lightgreen"
+                else:
+                    return "lightgreen"
+
+            def lastpercent_yellow(s):
+                if type(s) is str and len(s) > 2:
+                    return s[-3] == '%'
+                else:
+                    return 0
+
+            def bg_vswr_color(v):
+                if (lastpercent_vswr(v) and hashfunc(v) != 62282978):
+                    return "red"
+                elif (lastpercent_yellow(v) and hashfunc(v) != 62282978):
+                    return "yellow"
                 else:
                     return "lightgreen"
 
@@ -660,6 +690,7 @@ def app():
                 dff['Avg'] = np.around(dff.iloc[:, 2:].astype(
                     float).sum(axis=1)/no_of_readings, 1)
                 # print(f"dff average.. {dff.iloc[1,-1]}")
+
                 avg_ant1.append(np.around(dff.iloc[0, -1].astype(float), 1))
                 avg_ant2.append(np.around(dff.iloc[1, -1].astype(float), 1))
                 avg_ant3.append(np.around(dff.iloc[2, -1].astype(float), 1))
@@ -677,6 +708,7 @@ def app():
                 dffmax = dff.iloc[:, 2:-1].astype(float).agg(['min'])
                 dffapp = dff.append(dffmax, ignore_index=True)
                 print(dffapp)
+
                 rangee = dffapp.shape[1]-3
                 dffdif = dffapp
                 for index in range(rangee):
@@ -689,6 +721,7 @@ def app():
 
                 print(dffdif.T)
                 dffdift = dffdif.T
+                # st.sidebar.write(dffdift)
                 dffdift = dffdift.iloc[2: -1, :]
 
                 print('count 0 ')
@@ -804,6 +837,8 @@ def app():
             dffstyle = df.style.apply(lambda x: [f"background-color: {bg_color(v, flat_list)}" for v in x],
                                       subset=["ANT2 DI Cause", "ANT1 DI Cause", "ANT3 DI Cause", "ANT4 DI Cause", ">3db Failures"], axis=1)\
                 .applymap(color_negative, color='red', subset="Average DI")
+            dffstyle_vswr = df_vswr.style.apply(lambda x: [f"background-color: {bg_vswr_color(v)}" for v in x], subset=[
+                "ANT1 VSWR >=1.4", "ANT2 VSWR >=1.4", "ANT3 VSWR >=1.4", "ANT4 VSWR >=1.4"], axis=1)
 
             st.write(
                 f"*Capture Time Range*: :point_right: [{starttime}] to [{endtime}]")
@@ -811,6 +846,10 @@ def app():
                     Integer Telecom)").apply(lambda x: [f"background-color: {bg_color(v, flat_list)}" for v in x],
                                              subset=["ANT2 DI Cause", "ANT1 DI Cause", "ANT3 DI Cause", "ANT4 DI Cause", ">3db Failures"], axis=1)
                      .applymap(color_negative, color='red', subset="Average DI"))
+            st.write(
+                f"*VSWR*: :point_down:")
+            st.table(df_vswr.style.set_caption("Summary for VSWR (Copyright \
+            Integer Telecom)").apply(lambda x: [f"background-color: {bg_vswr_color(v)}" for v in x], subset=["ANT1 VSWR >=1.4", "ANT2 VSWR >=1.4", "ANT3 VSWR >=1.4", "ANT4 VSWR >=1.4"], axis=1))
 
             styles = [
                 dict(selector="tr:hover",
@@ -942,18 +981,112 @@ def app():
             # linko = f'<a href="data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,{b64}" download="myfilename.xlsx">Download excel file</a>'
             # st.markdown(linko, unsafe_allow_html=True)
 
-            def to_excel(df):
+            def get_col_widths(dataframe):
+                # First we find the maximum length of the index column
+                idx_max = max(
+                    [len(str(s)) for s in dataframe.index.values] + [len(str(dataframe.index.name))])
+                # st.sidebar.write(dataframe.index.name)
+                len_index = [[s for s in dataframe[col].values]
+                             for col in dataframe.columns]
+                # st.sidebar.write(len_index)
+                # Then, we concatenate this to the max of the lengths of column name and its values for each column, left to right
+                return_list = [idx_max] + [max([len(str(s)) for s in dataframe[col].values] + [
+                                               len(col)]) for col in dataframe.columns]
+                # st.sidebar.write(return_list)
+                return [idx_max] + [max([len(str(s)) for s in dataframe[col].values] + [len(col)]) for col in dataframe.columns]
+
+                # st.sidebar.write(get_col_widths(df1))
+
+            def to_excel(df, df1, df_vswr, df2):
                 output = BytesIO()
                 writer = pd.ExcelWriter(output, engine='xlsxwriter')
-                df.hide_index().to_excel(writer, index=False)
+                df = df.set_properties(**{'text-align': 'left'})
+                # df.set_properties(subset=['Average DI'], **{'width': '300px'})
+                # st.table(df)
+                df.to_excel(writer, index=False)
+                # df1.to_excel(writer, sheet_name='Result',
+                #              startrow=1, startcol=0)
+
                 workbook = writer.book
-                # worksheet = writer.sheets['Sheet1']
+                worksheet = writer.sheets['Sheet1']
+                vswr_format = workbook.add_format()
+                vswr_format.set_bold()
+                worksheet.write_string(
+                    df1.shape[0] + 4, 0, 'VSWR', vswr_format)
+                df_vswr.to_excel(writer, sheet_name='Sheet1',
+                                 startrow=df1.shape[0] + 5, startcol=0, index=False)
                 format1 = workbook.add_format({'num_format': '0.00'})
+                # Format all the columns.
+                my_format = workbook.add_format(
+                    {'align': 'left'})
+                my_format.set_align('left')
+                # my_format.set_text_wrap()
+                cell_format = workbook.add_format(
+                    {'bold': True, 'font_color': 'red'})
+
+                # add format for headers
+                header_format = workbook.add_format()
+                # header_format.set_font_name('Bodoni MT Black')
+                # header_format.set_font_color('green')
+                # header_format.set_font_size(24)
+                header_format.set_align('left')
+                header_format.set_text_wrap()
+                header_format.set_bold()
+                # header_format.set_bg_color('yellow')
+
+                # Write the column headers with the defined format.
+                for col_num, value in enumerate(df1.columns.values):
+                    worksheet.write(0, col_num, value, header_format)
+
+                # add format for vswr headers
+                header_vswr_format = workbook.add_format()
+                # header_format.set_font_name('Bodoni MT Black')
+                # header_format.set_font_color('green')
+                # header_format.set_font_size(24)
+                header_vswr_format.set_align('left')
+                header_vswr_format.set_text_wrap()
+                header_vswr_format.set_bold()
+
+                # Write the column headers with the defined format.
+                for col_num, value in enumerate(df2.columns.values):
+                    worksheet.write(len(df1) + 5, col_num,
+                                    value, header_vswr_format)
+
+                # Set the default height of all the rows, efficiently.
+                worksheet.set_default_row(30)
+                # Set the default height of all the columns, efficiently.
+                # worksheet.set_default_column(45)
+
+                # align left
+                format3 = workbook.add_format({'align': 'left'})
+
+                # worksheet.conditional_format('D1:D100', {'type':     'cell',
+                #  'criteria': 'between',
+                #  'minimum':  0,
+                #  'maximum':  30,
+                #  'format':   format3})
+                col_width_list = get_col_widths(df1)
+                col_width_list[0] = 15  # Sector Radio Type
+                col_width_list[2] = 10  # Readings Analyzed
+                col_width_list[3] = 10  # Average DI
+                for i, width in enumerate(col_width_list):
+                    worksheet.set_column(i, i, width)
+
+                worksheet.set_row(0, 30)  # Set the height of Row 1 to 30.
                 # worksheet.set_column('A:A', None, format1)
+                border_fmt = workbook.add_format(
+                    {'bottom': 5, 'top': 5, 'left': 5, 'right': 5})
+                worksheet.conditional_format(xlsxwriter.utility.xl_range(
+                    0, 0, len(df1), len(df1.columns) - 1), {'type': 'no_errors', 'format': border_fmt})
+                worksheet.conditional_format(xlsxwriter.utility.xl_range(
+                    len(df1) + 5, 0, len(df2) + len(df1) + 5, len(df2.columns)), {'type': 'no_errors', 'format': border_fmt})
+                # worksheet.conditional_format(xlsxwriter.utility.xl_range(
+                # 0, 0, 1, len(df1.columns)), {'type': 'no_errors', 'format': my_format})
                 writer.save()
                 processed_data = output.getvalue()
                 return processed_data
-            df_xlsx = to_excel(dffstyle)
+
+            df_xlsx = to_excel(dffstyle, df, dffstyle_vswr, df_vswr)
             st.download_button(label='📥 Download As Excel',
                                data=df_xlsx,
                                file_name=f'{siteid}_Output_summary.xlsx')
