@@ -16,6 +16,8 @@ from pyxlsb import open_workbook as open_xlsb
 # Authenticate to Firestore with the JSON account key.
 db = firestore.Client.from_service_account_json("firestore-key.json")
 dbname = 'Nokiadbprod'
+if 'vswr' not in st.session_state:
+    st.session_state['vswr'] = 1.4
 # import json
 # key_dict = json.loads(st.secrets["textkey"])
 # st.sidebar.write(key_dict)
@@ -509,7 +511,7 @@ def app():
         if 'df_vswr' in locals():
             # df_vswr exists.
             dffstyle_vswr = df_vswr.style.apply(lambda x: [f"background-color: {bg_vswr_color(v)}" for v in x], subset=[
-                "ANT1 VSWR >=1.4", "ANT2 VSWR >=1.4", "ANT3 VSWR >=1.4", "ANT4 VSWR >=1.4"], axis=1)
+                f"ANT1 VSWR >={st.session_state.vswr}", f"ANT2 VSWR >={st.session_state.vswr}", f"ANT3 VSWR >={st.session_state.vswr}", f"ANT4 VSWR >={st.session_state.vswr}"], axis=1)
         st.write(
             f"*Output Summary*: :point_down:")
         st.write(
@@ -522,7 +524,7 @@ def app():
             st.write(
                 f"*VSWR*: :point_down:")
             st.table(df_vswr.style.set_caption("Summary for VSWR (Copyright \
-                Integer Telecom)").apply(lambda x: [f"background-color: {bg_vswr_color(v)}" for v in x], subset=["ANT1 VSWR >=1.4", "ANT2 VSWR >=1.4", "ANT3 VSWR >=1.4", "ANT4 VSWR >=1.4"], axis=1))
+                Integer Telecom)").apply(lambda x: [f"background-color: {bg_vswr_color(v)}" for v in x], subset=[f"ANT1 VSWR >={st.session_state.vswr}", f"ANT2 VSWR >={st.session_state.vswr}", f"ANT3 VSWR >={st.session_state.vswr}", f"ANT4 VSWR >={st.session_state.vswr}"], axis=1))
 
         styles = [
             dict(selector="tr:hover",

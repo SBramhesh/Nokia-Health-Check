@@ -308,6 +308,9 @@ def value_loc(value, df):
 def app():
     with st.container():
 
+        if 'vswr' not in st.session_state:
+            st.session_state['vswr'] = 1.4
+
         st.header('Nokia Health Check')
         st.markdown('Please upload  **only excel files**.')
         hide_st_style = """
@@ -320,6 +323,21 @@ def app():
         st.markdown(hide_st_style, unsafe_allow_html=True)
 
         uploaded_file = st.file_uploader("Choose a file")
+
+        number = st.number_input('VSWR Threshold limit', value=1.4, key="vswr")
+        st.sidebar.write('The VSWR Threshold limit  is ',
+                         st.session_state.vswr)
+
+        # def form_callback():
+        #     st.sidebar.write(st.session_state.my_slider)
+        #     st.sidebar.write(st.session_state.my_checkbox)
+
+        # with st.form(key='my_form'):
+        #     slider_input = st.slider('My slider', 0, 10, 5, key='my_slider')
+        #     checkbox_input = st.checkbox('Yes or No', key='my_checkbox')
+        #     submit_button = st.form_submit_button(
+        #         label='Submit', on_click=form_callback)
+
         if uploaded_file is not None:
             # To read file as bytes:
             #  bytes_data = uploaded_file.getvalue()
@@ -838,7 +856,7 @@ def app():
                                       subset=["ANT2 DI Cause", "ANT1 DI Cause", "ANT3 DI Cause", "ANT4 DI Cause", ">3db Failures"], axis=1)\
                 .applymap(color_negative, color='red', subset="Average DI")
             dffstyle_vswr = df_vswr.style.apply(lambda x: [f"background-color: {bg_vswr_color(v)}" for v in x], subset=[
-                "ANT1 VSWR >=1.4", "ANT2 VSWR >=1.4", "ANT3 VSWR >=1.4", "ANT4 VSWR >=1.4"], axis=1)
+                f"ANT1 VSWR >={st.session_state.vswr}", f"ANT2 VSWR >={st.session_state.vswr}", f"ANT3 VSWR >={st.session_state.vswr}", f"ANT4 VSWR >={st.session_state.vswr}"], axis=1)
 
             st.write(
                 f"*Capture Time Range*: :point_right: [{starttime}] to [{endtime}]")
@@ -849,7 +867,7 @@ def app():
             st.write(
                 f"*VSWR*: :point_down:")
             st.table(df_vswr.style.set_caption("Summary for VSWR (Copyright \
-            Integer Telecom)").apply(lambda x: [f"background-color: {bg_vswr_color(v)}" for v in x], subset=["ANT1 VSWR >=1.4", "ANT2 VSWR >=1.4", "ANT3 VSWR >=1.4", "ANT4 VSWR >=1.4"], axis=1))
+            Integer Telecom)").apply(lambda x: [f"background-color: {bg_vswr_color(v)}" for v in x], subset=[f"ANT1 VSWR >={st.session_state.vswr}", f"ANT2 VSWR >={st.session_state.vswr}", f"ANT3 VSWR >={st.session_state.vswr}", f"ANT4 VSWR >={st.session_state.vswr}"], axis=1))
 
             styles = [
                 dict(selector="tr:hover",

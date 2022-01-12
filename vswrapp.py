@@ -296,6 +296,8 @@ def value_loc(value, df):
 
 
 def process_vswr(uploaded_vswr_file):
+    if 'vswr' not in st.session_state:
+        st.session_state['vswr'] = 1.4
     if uploaded_vswr_file is not None:
         # To read file as bytes:
         #  bytes_data = uploaded_file.getvalue()
@@ -483,7 +485,7 @@ def process_vswr(uploaded_vswr_file):
                     ant4_percent.append(
                         f"{count}|{np.around((count/double_no_of_readings)*100,0)}%")
 
-        limitdb = 1.39
+        limitdb = st.session_state.vswr - 0.01
         cleanrxlist = [x for x in rxlist if str(x) != 'nan']
         print(f"cleanrxlist..{cleanrxlist}")
         for i in cleanrxlist:
@@ -571,8 +573,8 @@ def process_vswr(uploaded_vswr_file):
         print(f"Sector Radio List is.. {sector_radio}")
 
         data = {'Sector-RadioType': sector_radio, 'Readings Analyzed (10 second intervals)': readingslist,
-                'ANT1 VSWR >=1.4': ant1_percent, 'ANT2 VSWR >=1.4': ant2_percent,
-                'ANT3 VSWR >=1.4': ant3_percent, 'ANT4 VSWR >=1.4': ant4_percent,
+                f'ANT1 VSWR >={st.session_state.vswr}': ant1_percent, f'ANT2 VSWR >={st.session_state.vswr}': ant2_percent,
+                f'ANT3 VSWR >={st.session_state.vswr}': ant3_percent, f'ANT4 VSWR >={st.session_state.vswr}': ant4_percent,
                 'Average VSWR ANT1': avg_ant1, 'Average VSWR ANT2': avg_ant2,
                 'Average VSWR ANT3': avg_ant3, 'Average VSWR ANT4': avg_ant4,
                 'RMOD [logical number]':  rmodlist
