@@ -485,7 +485,7 @@ def process_vswr(uploaded_vswr_file):
                     ant4_percent.append(
                         f"{count}|{np.around((count/double_no_of_readings)*100,0)}%")
 
-        limitdb = st.session_state.vswr - 0.01
+        limitdb = np.around(np.around(st.session_state.vswr, 2), 2) - 0.01
         cleanrxlist = [x for x in rxlist if str(x) != 'nan']
         print(f"cleanrxlist..{cleanrxlist}")
         for i in cleanrxlist:
@@ -573,8 +573,8 @@ def process_vswr(uploaded_vswr_file):
         print(f"Sector Radio List is.. {sector_radio}")
 
         data = {'Sector-RadioType': sector_radio, 'Readings Analyzed (10 second intervals)': readingslist,
-                f'ANT1 VSWR >={st.session_state.vswr}': ant1_percent, f'ANT2 VSWR >={st.session_state.vswr}': ant2_percent,
-                f'ANT3 VSWR >={st.session_state.vswr}': ant3_percent, f'ANT4 VSWR >={st.session_state.vswr}': ant4_percent,
+                f'ANT1 VSWR >={np.around(st.session_state.vswr, 2)}': ant1_percent, f'ANT2 VSWR >={np.around(st.session_state.vswr, 2)}': ant2_percent,
+                f'ANT3 VSWR >={np.around(st.session_state.vswr, 2)}': ant3_percent, f'ANT4 VSWR >={np.around(st.session_state.vswr, 2)}': ant4_percent,
                 'Average VSWR ANT1': avg_ant1, 'Average VSWR ANT2': avg_ant2,
                 'Average VSWR ANT3': avg_ant3, 'Average VSWR ANT4': avg_ant4,
                 'RMOD [logical number]':  rmodlist

@@ -322,11 +322,15 @@ def app():
             """
         st.markdown(hide_st_style, unsafe_allow_html=True)
 
-        uploaded_file = st.file_uploader("Choose a file")
+        uploaded_file = st.file_uploader(
+            "Choose a file")
 
-        number = st.number_input('VSWR Threshold limit', value=1.4, key="vswr")
+        number = st.number_input(
+            f'VSWR Threshold limit  ( > = )', value=1.4, key="vswr")
         st.sidebar.write('The VSWR Threshold limit  is ',
-                         st.session_state.vswr)
+                         np.around(st.session_state.vswr, 2))
+        # t = st.time_input('Set an alarm for', datetime.time(8, 45))
+        # st.write('Alarm is set for', t)
 
         # def form_callback():
         #     st.sidebar.write(st.session_state.my_slider)
@@ -856,7 +860,7 @@ def app():
                                       subset=["ANT2 DI Cause", "ANT1 DI Cause", "ANT3 DI Cause", "ANT4 DI Cause", ">3db Failures"], axis=1)\
                 .applymap(color_negative, color='red', subset="Average DI")
             dffstyle_vswr = df_vswr.style.apply(lambda x: [f"background-color: {bg_vswr_color(v)}" for v in x], subset=[
-                f"ANT1 VSWR >={st.session_state.vswr}", f"ANT2 VSWR >={st.session_state.vswr}", f"ANT3 VSWR >={st.session_state.vswr}", f"ANT4 VSWR >={st.session_state.vswr}"], axis=1)
+                f"ANT1 VSWR >={np.around(st.session_state.vswr, 2)}", f"ANT2 VSWR >={np.around(st.session_state.vswr, 2)}", f"ANT3 VSWR >={np.around(st.session_state.vswr, 2)}", f"ANT4 VSWR >={np.around(st.session_state.vswr, 2)}"], axis=1)
 
             st.write(
                 f"*Capture Time Range*: :point_right: [{starttime}] to [{endtime}]")
@@ -867,7 +871,7 @@ def app():
             st.write(
                 f"*VSWR*: :point_down:")
             st.table(df_vswr.style.set_caption("Summary for VSWR (Copyright \
-            Integer Telecom)").apply(lambda x: [f"background-color: {bg_vswr_color(v)}" for v in x], subset=[f"ANT1 VSWR >={st.session_state.vswr}", f"ANT2 VSWR >={st.session_state.vswr}", f"ANT3 VSWR >={st.session_state.vswr}", f"ANT4 VSWR >={st.session_state.vswr}"], axis=1))
+            Integer Telecom)").apply(lambda x: [f"background-color: {bg_vswr_color(v)}" for v in x], subset=[f"ANT1 VSWR >={np.around(st.session_state.vswr, 2)}", f"ANT2 VSWR >={np.around(st.session_state.vswr, 2)}", f"ANT3 VSWR >={np.around(st.session_state.vswr, 2)}", f"ANT4 VSWR >={np.around(st.session_state.vswr, 2)}"], axis=1))
 
             styles = [
                 dict(selector="tr:hover",

@@ -511,7 +511,7 @@ def app():
         if 'df_vswr' in locals():
             # df_vswr exists.
             dffstyle_vswr = df_vswr.style.apply(lambda x: [f"background-color: {bg_vswr_color(v)}" for v in x], subset=[
-                f"ANT1 VSWR >={st.session_state.vswr}", f"ANT2 VSWR >={st.session_state.vswr}", f"ANT3 VSWR >={st.session_state.vswr}", f"ANT4 VSWR >={st.session_state.vswr}"], axis=1)
+                f"ANT1 VSWR >={np.around(st.session_state.vswr, 2)}", f"ANT2 VSWR >={np.around(st.session_state.vswr, 2)}", f"ANT3 VSWR >={np.around(st.session_state.vswr, 2)}", f"ANT4 VSWR >={np.around(st.session_state.vswr, 2)}"], axis=1)
         st.write(
             f"*Output Summary*: :point_down:")
         st.write(
@@ -524,7 +524,7 @@ def app():
             st.write(
                 f"*VSWR*: :point_down:")
             st.table(df_vswr.style.set_caption("Summary for VSWR (Copyright \
-                Integer Telecom)").apply(lambda x: [f"background-color: {bg_vswr_color(v)}" for v in x], subset=[f"ANT1 VSWR >={st.session_state.vswr}", f"ANT2 VSWR >={st.session_state.vswr}", f"ANT3 VSWR >={st.session_state.vswr}", f"ANT4 VSWR >={st.session_state.vswr}"], axis=1))
+                Integer Telecom)").apply(lambda x: [f"background-color: {bg_vswr_color(v)}" for v in x], subset=[f"ANT1 VSWR >={np.around(st.session_state.vswr, 2)}", f"ANT2 VSWR >={np.around(st.session_state.vswr, 2)}", f"ANT3 VSWR >={np.around(st.session_state.vswr, 2)}", f"ANT4 VSWR >={np.around(st.session_state.vswr, 2)}"], axis=1))
 
         styles = [
             dict(selector="tr:hover",
