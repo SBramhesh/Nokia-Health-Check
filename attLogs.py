@@ -422,6 +422,7 @@ def app():
                 col_width_list = get_col_widths(df_original)
                 col_width_list[0] = 17  # Cell
                 col_width_list[6] = 18  # RSSI_BRANCH_1
+                col_width_list[7] = 18  # RSSI_BRANCH_2
                 col_width_list[8] = 18  # RSSI_BRANCH_3
                 col_width_list[9] = 18  # RSSI_BRANCH_4
                 col_width_list[11] = 13  # VSWR_BRANCH_1
