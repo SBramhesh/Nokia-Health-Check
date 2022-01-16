@@ -291,7 +291,7 @@ def app():
         st.markdown(hide_st_style, unsafe_allow_html=True)
 
         uploaded_file = st.file_uploader(
-            "Choose a file")
+            "Choose a file", key="att")
 
         # def form_callback():
         #     st.sidebar.write(st.session_state.my_slider)

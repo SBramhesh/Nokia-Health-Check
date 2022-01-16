@@ -323,7 +323,7 @@ def app():
         st.markdown(hide_st_style, unsafe_allow_html=True)
 
         uploaded_file = st.file_uploader(
-            "Choose a file")
+            "Choose a file", key="rtwp")
 
         number = st.number_input(
             f'VSWR Threshold limit  ( > = )', value=1.4, key="vswr")
