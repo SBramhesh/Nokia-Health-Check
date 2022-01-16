@@ -1,6 +1,7 @@
 # nokia.py
 import fireStoreapp
 import streamapp
+import attLogs
 import vswrapp
 import streamlit_authenticator as stauth
 import streamlit as st
@@ -28,6 +29,7 @@ if authentication_status:
     PAGES = {
         "Upload  New File": streamapp,
         "Files Processed (Raw Data + Summary)": fireStoreapp,
+        "Process AT&T Log Files": attLogs,
     }
     st.sidebar.title('Nokia Main Menu')
     selection = st.sidebar.radio(
