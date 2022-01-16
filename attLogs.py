@@ -198,6 +198,7 @@ def get_rssi_bandwidth(deff):
     Ten_list = []
     Fifteen_list = []
     Twenty_list = []
+    Nan_list = []
     for index, rows in deff.iterrows():
         # Create list for the current row
         my_list = rows.Bandwidth
@@ -212,14 +213,18 @@ def get_rssi_bandwidth(deff):
             my_list).__contains__('15') else 1000
         twenty_my_list = index if str(
             my_list).__contains__('20') else 1000
+        nan_my_list = index if not str(
+            my_list).__contains__('MHz') else 1000
 
         # append the list to the final list
         Five_list.append(five_my_list)
         Ten_list.append(ten_my_list)
         Fifteen_list.append(fifteen_my_list)
         Twenty_list.append(twenty_my_list)
+        Nan_list.append(nan_my_list)
         # st.sidebar.write(f"5MHz list is ..{Five_list}")
         # st.sidebar.write(f"10MHz list is ..{Ten_list}")
+        # st.sidebar.write(f"NaN list is ..{Nan_list}")
 
     # Five_listt = list(filter((np.NaN).__ne__, Five_list))
     # res = [i for i in test_list if i]
@@ -227,7 +232,8 @@ def get_rssi_bandwidth(deff):
     Ten_listt = [i for i in Ten_list if i != 1000]
     Fifteen_listt = [i for i in Fifteen_list if i != 1000]
     Twenty_listt = [i for i in Twenty_list if i != 1000]
-    return Five_listt, Ten_listt, Fifteen_listt, Twenty_listt
+    Nan_listt = [i for i in Nan_list if i != 1000]
+    return Five_listt, Ten_listt, Fifteen_listt, Twenty_listt, Nan_listt
 
 
 def bg_color_di(v):
@@ -274,6 +280,10 @@ def bg_color_twenty(v):
         return "red"
     else:
         return "lightgreen"
+
+
+def bg_color_nan(v):
+    return "yellow"
 
 
 def app():
@@ -350,7 +360,7 @@ def app():
             </style>
             """, unsafe_allow_html=True)
 
-            five_list, ten_list, fifteen_list, twenty_list = get_rssi_bandwidth(
+            five_list, ten_list, fifteen_list, twenty_list, nan_list = get_rssi_bandwidth(
                 df_final)
 
             st.table(df_final.style.apply(lambda x: [
@@ -364,7 +374,9 @@ def app():
                 .apply(lambda x: [
                     f"background-color: {bg_color_fifteen(v)}" for v in x],  subset=(fifteen_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"]))
                 .apply(lambda x: [
-                    f"background-color: {bg_color_twenty(v)}" for v in x],  subset=(twenty_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"])))
+                    f"background-color: {bg_color_twenty(v)}" for v in x],  subset=(twenty_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"]))
+                .apply(lambda x: [
+                    f"background-color: {bg_color_nan(v)}" for v in x],  subset=(nan_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"])))
 
             # df_final.loc[df_final['Bandwidth'] == '10 MHz']
             # my_list = df_final.index[df_final['Bandwidth'].__contains__(
@@ -387,7 +399,8 @@ def app():
                     f"background-color: {bg_color_fifteen(v)}" for v in x],  subset=(fifteen_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"]))\
                 .apply(lambda x: [
                     f"background-color: {bg_color_twenty(v)}" for v in x],  subset=(twenty_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"]))\
-
+                .apply(lambda x: [
+                    f"background-color: {bg_color_nan(v)}" for v in x],  subset=(nan_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"]))
 
             def get_col_widths(dataframe):
                 # First we find the maximum length of the index column

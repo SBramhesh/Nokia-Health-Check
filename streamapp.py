@@ -356,6 +356,7 @@ def app():
             # df_vswr = process_vswr(vswr_uploaded_file)
             uploadedfn = uploaded_file.name
             siteid = uploadedfn.split('_')[2][1:]
+            st.session["site_id"] = siteid
             st.sidebar.write(f"Site Id: :point_right: *{siteid}*")
             excel_read = pd.read_csv(uploaded_file, skiprows=1, header=None)
             myfiler = excel_read
@@ -452,7 +453,7 @@ def app():
                 f"{siteid}->{str(now)}")
             doc_ref.set({
                 u'Technology': u'Nokia LTE',
-                u'site_id': siteid,
+                u'site_id': st.session["site_id"],
                 u'firstcol': first_json,
                 u'data': radiojson,
                 u'vswr': vswr_json,
