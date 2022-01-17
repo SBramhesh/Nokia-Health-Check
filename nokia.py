@@ -27,9 +27,9 @@ name, authentication_status = authenticator.login('Nokia Login', 'main')
 if authentication_status:
     st.sidebar.write('Logged in as *%s*' % (name))
     PAGES = {
-        "Upload  New File": streamapp,
+        "Upload  New File (RTWP + VSWR)": streamapp,
         "Files Processed (Raw Data + Summary)": fireStoreapp,
-        "Process AT&T Log Files": attLogs,
+        "Process AT&T Log Files (RSSI)": attLogs,
     }
     st.sidebar.title('Nokia Main Menu')
     selection = st.sidebar.radio(
