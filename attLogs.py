@@ -124,6 +124,10 @@ def get_rrsi_df1(textr):
     return ddf_nrr
 
 
+rssi_time = ""
+rssi_date = ""
+
+
 def get_combined_rssi_df(textr2, ddf_nrr):
     ddfnr1 = pd.read_csv(StringIO(textr2.strip()),
                          sep='|', skiprows=2,  header=None)
@@ -134,6 +138,10 @@ def get_combined_rssi_df(textr2, ddf_nrr):
         ddfnr1.iloc[:, i] = pd.to_numeric(
             ddfnr1.iloc[:, i], errors='coerce').fillna(0).astype('float')
     print(ddfnr1.shape)
+    rssi_time = ddfnr1.iloc[0, 1]
+    # st.sidebar.write(f"time is ..{rssi_time}")
+    rssi_date = ddfnr1.iloc[0, 0]
+    # st.sidebar.write(f"Date is ..{rssi_date}")
     ddfnr1 = ddfnr1.iloc[:, 4:]
     # ddfnr1
 
@@ -177,7 +185,7 @@ def get_combined_rssi_df(textr2, ddf_nrr):
     deff['DI'] = Row_list
     print(deff.columns)
     print(f"max ")
-    return deff
+    return deff, rssi_date, rssi_time
 
 
 def get_final_df(deff, dffn, df_vswr):
@@ -289,7 +297,7 @@ def bg_color_nan(v):
 def app():
     with st.container():
 
-        st.header('Process AT&T Log Files')
+        st.header('Process AT&T Log Files (RSSI)')
         st.markdown('Please upload  **only log files**.')
         hide_st_style = """
             <style>
@@ -343,7 +351,8 @@ def app():
 
             rssi_table_2 = get_rssi_table2(string_data)
 
-            rssi_combined_df = get_combined_rssi_df(rssi_table_2, rssi_df1)
+            rssi_combined_df, rssi_date, rssi_time = get_combined_rssi_df(
+                rssi_table_2, rssi_df1)
 
             # st.table(rssi_combined_df)
 
@@ -363,6 +372,8 @@ def app():
             five_list, ten_list, fifteen_list, twenty_list, nan_list = get_rssi_bandwidth(
                 df_final)
 
+            st.write(
+                f"*Measured Time*: :point_right: {rssi_date} {rssi_time}")
             st.table(df_final.style.apply(lambda x: [
                 f"background-color: {bg_color_di(v)}" for v in x], subset=["DI"], axis=1)
                 .apply(lambda x: [
