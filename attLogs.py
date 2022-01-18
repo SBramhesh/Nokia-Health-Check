@@ -169,6 +169,7 @@ def get_combined_rssi_df(textr2, ddf_nrr):
         my_list = [rows.RSSI_BRANCH_1, rows.RSSI_BRANCH_2,
                    rows.RSSI_BRANCH_3, rows.RSSI_BRANCH_4]
     #     my_list = np.min(my_list[np.nonzero(my_list)])
+        # st.sidebar.write(deff.columns)
         my_list = [i for i in my_list if i != 0]
         if not my_list:
             diff_my_list = 0
@@ -181,11 +182,37 @@ def get_combined_rssi_df(textr2, ddf_nrr):
     # Print the list
     print(Row_list)
 
-    # deff['DI'] = (deff.max(axis=1) - deff.min(axis=1))
     deff['DI'] = Row_list
     print(deff.columns)
     print(f"max ")
     return deff, rssi_date, rssi_time
+
+
+def rssi_na(ddfnr):
+    rssi_list_4 = []
+    rssi_list_3 = []
+    rssi_list_2 = []
+    rssi_list_1 = []
+    for index, rows in ddfnr.iterrows():
+        # st.sidebar.write(rows.Bandwidth)
+        if not rows.Bandwidth.__contains__("MHz"):
+            rssi_list_4.append(np.nan)
+            rssi_list_3.append(np.nan)
+            rssi_list_2.append(np.nan)
+            rssi_list_1.append(np.nan)
+        else:
+            rssi_list_4.append(rows.RSSI_BRANCH_4)
+            rssi_list_3.append(rows.RSSI_BRANCH_3)
+            rssi_list_2.append(rows.RSSI_BRANCH_2)
+            rssi_list_1.append(rows.RSSI_BRANCH_1)
+        # st.sidebar.write(rssi_list_4)
+    ddfnr["RSSI_BRANCH_4"] = rssi_list_4
+    ddfnr["RSSI_BRANCH_3"] = rssi_list_3
+    ddfnr["RSSI_BRANCH_2"] = rssi_list_2
+    ddfnr["RSSI_BRANCH_1"] = rssi_list_1
+    # st.sidebar.table(ddfnr)
+
+    return ddfnr
 
 
 def get_final_df(deff, dffn, df_vswr):
@@ -197,8 +224,8 @@ def get_final_df(deff, dffn, df_vswr):
                                    'VSWR_BRANCH_4'])
     print(ddfnr.shape)
     # df_style = ddfnr.style.hide_index()
-
-    return ddfnr
+    # deff['DI'] = (deff.max(axis=1) - deff.min(axis=1))
+    return rssi_na(ddfnr)
 
 
 def get_rssi_bandwidth(deff):
@@ -371,6 +398,8 @@ def app():
 
             five_list, ten_list, fifteen_list, twenty_list, nan_list = get_rssi_bandwidth(
                 df_final)
+            # df_final.apply(lambda x: [
+            # "N/A" for v in x],  subset=(twenty_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"]))
 
             st.write(
                 f"*Measured Time*: :point_right: {rssi_date} {rssi_time}")
@@ -385,9 +414,7 @@ def app():
                 .apply(lambda x: [
                     f"background-color: {bg_color_fifteen(v)}" for v in x],  subset=(fifteen_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"]))
                 .apply(lambda x: [
-                    f"background-color: {bg_color_twenty(v)}" for v in x],  subset=(twenty_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"]))
-                .apply(lambda x: [
-                    f"background-color: {bg_color_nan(v)}" for v in x],  subset=(nan_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"])))
+                    f"background-color: {bg_color_twenty(v)}" for v in x],  subset=(twenty_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"])))
 
             # df_final.loc[df_final['Bandwidth'] == '10 MHz']
             # my_list = df_final.index[df_final['Bandwidth'].__contains__(
@@ -429,7 +456,7 @@ def app():
                 writer = pd.ExcelWriter(output, engine='xlsxwriter')
                 df_with_style = df_with_style.set_properties(
                     **{'text-align': 'left'})
-                df_with_style.to_excel(writer, index=False)
+                df_with_style.to_excel(writer, index=False, na_rep='NaN')
 
                 workbook = writer.book
                 worksheet = writer.sheets['Sheet1']
