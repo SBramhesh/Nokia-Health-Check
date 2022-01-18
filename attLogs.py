@@ -414,7 +414,9 @@ def app():
                 .apply(lambda x: [
                     f"background-color: {bg_color_fifteen(v)}" for v in x],  subset=(fifteen_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"]))
                 .apply(lambda x: [
-                    f"background-color: {bg_color_twenty(v)}" for v in x],  subset=(twenty_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"])))
+                    f"background-color: {bg_color_twenty(v)}" for v in x],  subset=(twenty_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"]))
+                .apply(lambda x: [
+                    f"background-color: {bg_color_nan(v)}" for v in x],  subset=(nan_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"])))
 
             # df_final.loc[df_final['Bandwidth'] == '10 MHz']
             # my_list = df_final.index[df_final['Bandwidth'].__contains__(
