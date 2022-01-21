@@ -467,7 +467,7 @@ def app():
 
                 workbook = writer.book
                 worksheet = writer.sheets['Sheet1']
-                header_format = workbook.add_format()
+                header_format = workbook.add_format({'bg_color': '#b3e5fc'})
                 header_format.set_align('left')
                 header_format.set_text_wrap()
                 header_format.set_bold()
@@ -475,10 +475,10 @@ def app():
                 text_format = workbook.add_format()
                 text_format.set_bold()
                 text_format.set_italic()
-                text_format.set_font_size(16)
+                text_format.set_font_size(11)
                 text_format.set_font_color('navy')
 
-                footer_format = workbook.add_format({'bg_color': '#ffc107'})
+                footer_format = workbook.add_format({'bg_color': '#ffd54f'})
                 # footer_format.set_bg_color('skyblue')
                 # footer_format.set_bold()
                 footer_format.set_font_size(11)
@@ -486,12 +486,12 @@ def app():
                 for col_num, value in enumerate(df_original.columns.values):
                     worksheet.write(1, col_num, value, header_format)
                 # Set the default height of all the rows, efficiently.
-                worksheet.set_default_row(30)
+                worksheet.set_default_row(20)
                 # Set the height of Row len(df_original)+2 to 20.
-                worksheet.set_row(len(df_original)+2, 20)
-                worksheet.set_row(len(df_original)+3, 20)
-                worksheet.set_row(len(df_original)+4, 20)
-                worksheet.set_row(len(df_original)+5, 20)
+                # worksheet.set_row(len(df_original)+2, 20)
+                # worksheet.set_row(len(df_original)+3, 20)
+                # worksheet.set_row(len(df_original)+4, 20)
+                # worksheet.set_row(len(df_original)+5, 20)
 
                 col_width_list = get_col_widths(df_original)
                 col_width_list[0] = 17  # Cell
