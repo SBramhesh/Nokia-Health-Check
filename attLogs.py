@@ -478,10 +478,10 @@ def app():
                 text_format.set_font_size(16)
                 text_format.set_font_color('navy')
 
-                footer_format = workbook.add_format({'bg_color': 'magenta'})
+                footer_format = workbook.add_format({'bg_color': '#ffc107'})
                 # footer_format.set_bg_color('skyblue')
                 # footer_format.set_bold()
-                footer_format.set_font_size(16)
+                footer_format.set_font_size(11)
                 # Write the column headers with the defined format.
                 for col_num, value in enumerate(df_original.columns.values):
                     worksheet.write(1, col_num, value, header_format)
