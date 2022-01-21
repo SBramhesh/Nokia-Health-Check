@@ -15,7 +15,7 @@ from pyxlsb import open_workbook as open_xlsb
 
 # Authenticate to Firestore with the JSON account key.
 db = firestore.Client.from_service_account_json("firestore-key.json")
-dbname = 'Nokiadb'
+dbname = 'Nokiadbprod'
 if 'vswr' not in st.session_state:
     st.session_state['vswr'] = 1.4
 # import json
