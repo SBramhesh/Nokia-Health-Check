@@ -450,7 +450,7 @@ def app():
             radiojson = myfiler.to_json(orient="records")
             # st.sidebar.write(radiojson)
             data_dict = myfiler.to_dict("records")
-            doc_ref = db.collection(u'Nokiadbprod').document(
+            doc_ref = db.collection(u'Nokiadb').document(
                 f"{siteid}->{str(now)}")
             doc_ref.set({
                 u'Technology': u'Nokia LTE',

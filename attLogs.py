@@ -487,6 +487,11 @@ def app():
                     worksheet.write(1, col_num, value, header_format)
                 # Set the default height of all the rows, efficiently.
                 worksheet.set_default_row(30)
+                # Set the height of Row len(df_original)+2 to 20.
+                worksheet.set_row(len(df_original)+2, 20)
+                worksheet.set_row(len(df_original)+3, 20)
+                worksheet.set_row(len(df_original)+4, 20)
+                worksheet.set_row(len(df_original)+5, 20)
 
                 col_width_list = get_col_widths(df_original)
                 col_width_list[0] = 17  # Cell
