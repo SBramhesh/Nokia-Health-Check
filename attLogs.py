@@ -157,7 +157,6 @@ def get_combined_rssi_df(textr2, ddf_nrr):
     deff.columns = ['CELL', 'RSSI_BRANCH_1',
                     'RSSI_BRANCH_2', 'RSSI_BRANCH_3', 'RSSI_BRANCH_4']
     # deff['CELL'] = deff['CELL1']
-    deff.iloc[1:2, 1:] = 1
     deff = deff.groupby('CELL').mean()
     deff.reset_index(inplace=True)
     deff = deff.rename(columns={'index': 'CELL'})
@@ -206,6 +205,10 @@ def rssi_na(ddfnr):
             rssi_list_2.append(rows.RSSI_BRANCH_2)
             rssi_list_1.append(rows.RSSI_BRANCH_1)
         # st.sidebar.write(rssi_list_4)
+    rssi_list_4 = [np.nan if x == 0 else x for x in rssi_list_4]
+    rssi_list_3 = [np.nan if x == 0 else x for x in rssi_list_3]
+    rssi_list_2 = [np.nan if x == 0 else x for x in rssi_list_2]
+    rssi_list_1 = [np.nan if x == 0 else x for x in rssi_list_1]
     ddfnr["RSSI_BRANCH_4"] = rssi_list_4
     ddfnr["RSSI_BRANCH_3"] = rssi_list_3
     ddfnr["RSSI_BRANCH_2"] = rssi_list_2
@@ -400,6 +403,7 @@ def app():
                 df_final)
             # df_final.apply(lambda x: [
             # "N/A" for v in x],  subset=(twenty_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"]))
+            # st.sidebar.write(df_final)
 
             st.write(
                 f"*Measured Time*: :point_right: {rssi_date} {rssi_time}")
@@ -458,7 +462,8 @@ def app():
                 writer = pd.ExcelWriter(output, engine='xlsxwriter')
                 df_with_style = df_with_style.set_properties(
                     **{'text-align': 'left'})
-                df_with_style.to_excel(writer, index=False, na_rep='NaN')
+                df_with_style.to_excel(
+                    writer, index=False, na_rep='N/A', startrow=1)
 
                 workbook = writer.book
                 worksheet = writer.sheets['Sheet1']
@@ -466,9 +471,20 @@ def app():
                 header_format.set_align('left')
                 header_format.set_text_wrap()
                 header_format.set_bold()
+
+                text_format = workbook.add_format()
+                text_format.set_bold()
+                text_format.set_italic()
+                text_format.set_font_size(16)
+                text_format.set_font_color('navy')
+
+                footer_format = workbook.add_format({'bg_color': 'magenta'})
+                # footer_format.set_bg_color('skyblue')
+                # footer_format.set_bold()
+                footer_format.set_font_size(16)
                 # Write the column headers with the defined format.
                 for col_num, value in enumerate(df_original.columns.values):
-                    worksheet.write(0, col_num, value, header_format)
+                    worksheet.write(1, col_num, value, header_format)
                 # Set the default height of all the rows, efficiently.
                 worksheet.set_default_row(30)
 
@@ -478,16 +494,57 @@ def app():
                 col_width_list[7] = 18  # RSSI_BRANCH_2
                 col_width_list[8] = 18  # RSSI_BRANCH_3
                 col_width_list[9] = 18  # RSSI_BRANCH_4
+                col_width_list[10] = 10  # DI
                 col_width_list[11] = 13  # VSWR_BRANCH_1
 
                 for i, width in enumerate(col_width_list):
                     worksheet.set_column(i, i, width)
-                worksheet.set_row(0, 30)  # Set the height of Row 1 to 30.
+                worksheet.set_row(1, 30)  # Set the height of Row 1 to 30.
                 # worksheet.set_column('A:A', None, format1)
                 border_fmt = workbook.add_format(
                     {'bottom': 5, 'top': 5, 'left': 5, 'right': 5})
                 worksheet.conditional_format(xlsxwriter.utility.xl_range(
-                    0, 0, len(df_original), len(df_original.columns) - 1), {'type': 'no_errors', 'format': border_fmt})
+                    1, 0, len(df_original)+1, len(df_original.columns) - 1), {'type': 'no_errors', 'format': border_fmt})
+                # <<< Then you can write to a different row
+                worksheet.write(
+                    0, 0, f"Measured Time:    {rssi_date} {rssi_time}",  text_format)
+                worksheet.write(
+                    len(df_original)+2, 0, "TargetThresholds", footer_format
+                )
+                worksheet.write(
+                    len(df_original)+2, 1, "", footer_format
+                )
+                worksheet.write(
+                    len(df_original)+2, 6, "-110>5MHz<-98", footer_format
+                )
+                worksheet.write(
+                    len(df_original)+2, 7, "", footer_format
+                )
+                worksheet.write(
+                    len(df_original)+3, 6, "-107>10Mhz<-95", footer_format
+                )
+                worksheet.write(
+                    len(df_original)+3, 7, "", footer_format
+                )
+                worksheet.write(
+                    len(df_original)+4, 6, "-105.2>15Mhz<-93.2", footer_format
+                )
+                worksheet.write(
+                    len(df_original)+4, 7, "", footer_format
+                )
+                worksheet.write(
+                    len(df_original)+5, 6, "-104>20Mhz<-92", footer_format
+                )
+                worksheet.write(
+                    len(df_original)+5, 7, "", footer_format
+                )
+                worksheet.write(
+                    len(df_original)+2, 10, "<3.0", footer_format
+                )
+                worksheet.write(
+                    len(df_original)+2, 12, "<1.5", footer_format
+                )
+
                 writer.save()
                 processed_data = output.getvalue()
                 return processed_data
