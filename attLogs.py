@@ -20,14 +20,35 @@ def get_first_table(string_data):
 
 
 def get_vswr_table(string_data):
-    regexp = re.compile(r'RTWP')
-    if regexp.search(string_data):
-        print(string_data.split(r'VSWR TABLE:')[1].split(r'RTWP TABLE')[0])
-        textv = string_data.split(r'VSWR TABLE:')[1].split(r'RTWP TABLE')[0]
-    else:
-        print(string_data.split(r'VSWR TABLE:')[1].split(r'CLI PARSING')[0])
-        textv = string_data.split(r'VSWR TABLE:')[1].split(r'CLI PARSING')[0]
-    return textv
+    regexp_rtwp = re.compile(r'RTWP')
+    regexp_vswr = re.compile(r'VSWR')
+    text_vswr = ""
+    if string_data.find('VSWR') != -1:
+        if regexp_rtwp.search(string_data):
+            print(string_data.split(r'VSWR TABLE:')[1].split(r'RTWP TABLE')[0])
+            text_vswr = string_data.split(r'VSWR TABLE:')[
+                1].split(r'RTWP TABLE')[0]
+        else:
+            print(string_data.split(r'VSWR TABLE:')
+                  [1].split(r'CLI PARSING')[0])
+            text_vswr = string_data.split(r'VSWR TABLE:')[
+                1].split(r'CLI PARSING')[0]
+    return text_vswr
+
+
+def get_no_vswr_table(string_data):
+    regexp_1 = re.compile(r'CLI PARSING: STARTED:')
+    regexp_2 = re.compile(r'LNCEL_ID')
+
+    text_novswr = ""
+
+    if regexp_1.search(string_data):
+        print(string_data.split(r'CLI PARSING: STARTED:')[
+              0].split(r'LNCEL_ID')[1].split(r'RM_EXID_CONF ')[0])
+        text_novswr = string_data.split(r'CLI PARSING: STARTED:')[0].split(
+            r'LNCEL_ID')[1].split(r'RM_EXID_CONF ')[0]
+
+    return text_novswr
 
 
 def get_first_table_df(textt):
@@ -36,11 +57,32 @@ def get_first_table_df(textt):
     # dffs2 = pd.read_csv(StringIO(d.strip()), delim_whitespace=True, header=None)
     dffn = ddfn.iloc[:, 1:].dropna(thresh=3)
     dffn = dffn.iloc[:, :-1]
-    print(dffn.shape)
+    # st.sidebar.write(dffn)
+    # st.sidebar.write(len(dffn.index))
     # dffn= dffn.iloc[:,4:9]
     dffn = dffn.iloc[:, [4, 5, 7, 8]].copy()
     dffn.columns = ['Bandwidth', 'BBMOD', 'RMOD_ID', 'RMOD']
-    return dffn
+    return dffn, len(dffn.index)
+
+
+def get_no_vswr_df(text_novswr):
+    ddfnvswr = pd.read_csv(StringIO(text_novswr.strip()),
+                           sep='|', skiprows=2, header=None)
+    ddfnvswr = ddfnvswr.iloc[:, 1: -1]
+    ddfnvswr = ddfnvswr.dropna(thresh=3)
+    columns = [2, 7]
+    ddfnn1 = pd.DataFrame(ddfnvswr, columns=columns)
+    ddfnn1.columns = ['CELL', 'LNCEL_ID']
+    ddfnn1['LNCEL_ID'] = ddfnn1['LNCEL_ID'].astype(int)
+    lncel_list = list(ddfnn1['LNCEL_ID'].astype(int))
+    lnid_list = [f"LNCEL-{str(x)}" for x in lncel_list if not str(x) == "nan"]
+    print(lnid_list)
+    ddfnn1['LNCEL_ID'] = lnid_list
+    ddfnn1['VSWR_BRANCH_1'] = np.nan
+    ddfnn1['VSWR_BRANCH_2'] = np.nan
+    ddfnn1['VSWR_BRANCH_3'] = np.nan
+    ddfnn1['VSWR_BRANCH_4'] = np.nan
+    return ddfnn1
 
 
 def get_vswr_df(textv):
@@ -96,19 +138,42 @@ def get_vswr_df(textv):
     data = {'CELL': cell_list, 'LNCEL_ID': lncel_list,   'VSWR_BRANCH_1': vswr_branch_1,
             'VSWR_BRANCH_2': vswr_branch_2, 'VSWR_BRANCH_3': vswr_branch_3, 'VSWR_BRANCH_4': vswr_branch_4}
     df_vswr = pd.DataFrame(data)
+    # st.sidebar.write(df_vswr)
     return df_vswr
 
 
 def get_rssi_table1(string_data):
-    print(string_data.split(r'CLI PARSING: COMPLETED:')[
-          1].split(r'RSSI_ANT_1')[1].split(r'DL_Vol(MBs)')[0])
-    return string_data.split(r'CLI PARSING: COMPLETED:')[1].split(r'RSSI_ANT_1')[1].split(r'DL_Vol(MBs)')[0]
+
+    regexp_v1 = re.compile(r'CLI PARSING: COMPLETED:')
+    regexp_v2 = re.compile(r'CLI PARSING: STARTED:')
+    if regexp_v1.search(string_data):
+        print(string_data.split(r'CLI PARSING: COMPLETED:')[
+            1].split(r'RSSI_ANT_1')[1].split(r'DL_Vol(MBs)')[0])
+        textr1 = string_data.split(r'CLI PARSING: COMPLETED:')[1].split(
+            r'RSSI_ANT_1')[1].split(r'DL_Vol(MBs)')[0]
+    elif regexp_v2.search(string_data):
+        print(string_data.split(r'CLI PARSING: STARTED:')[
+            1].split(r'RSSI_ANT_1')[1].split(r'DL_Vol(MBs)')[0])
+        textr1 = string_data.split(r'CLI PARSING: STARTED:')[1].split(
+            r'RSSI_ANT_1')[1].split(r'DL_Vol(MBs)')[0]
+    return textr1
 
 
 def get_rssi_table2(string_data):
-    print(string_data.split(r'CLI PARSING: COMPLETED:')
-          [1].split(r'RSSI_ANT_1')[2])
-    return string_data.split(r'CLI PARSING: COMPLETED:')[1].split(r'RSSI_ANT_1')[2]
+
+    regexp_v1 = re.compile(r'CLI PARSING: COMPLETED:')
+    regexp_v2 = re.compile(r'CLI PARSING: STARTED:')
+    if regexp_v1.search(string_data):
+        print(string_data.split(r'CLI PARSING: COMPLETED:')[
+            1].split(r'RSSI_ANT_1')[2])
+        textr2 = string_data.split(r'CLI PARSING: COMPLETED:')[
+            1].split(r'RSSI_ANT_1')[2]
+    elif regexp_v2.search(string_data):
+        print(string_data.split(r'CLI PARSING: STARTED:')[
+            1].split(r'RSSI_ANT_1')[2])
+        textr2 = string_data.split(r'CLI PARSING: STARTED:')[
+            1].split(r'RSSI_ANT_1')[2]
+    return textr2
 
 
 def get_rrsi_df1(textr):
@@ -364,15 +429,19 @@ def app():
 
             textt = get_first_table(string_data)
 
-            first_table_df = get_first_table_df(textt)
+            first_table_df, len_first_df = get_first_table_df(textt)
 
             # st.table(first_table_df)
+            # st.sidebar.write(string_data)
 
             vswr_table = get_vswr_table(string_data)
 
-            vswr_df = get_vswr_df(vswr_table)
+            if len(vswr_table) > 1:
+                vswr_df = get_vswr_df(vswr_table)
+            else:
+                no_vswr_table = get_no_vswr_table(string_data)
+                vswr_df = get_no_vswr_df(no_vswr_table)
 
-            # st.table(vswr_df)
             rssi_table_1 = get_rssi_table1(string_data)
 
             rssi_df1 = get_rrsi_df1(rssi_table_1)
