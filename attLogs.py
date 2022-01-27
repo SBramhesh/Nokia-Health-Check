@@ -293,6 +293,9 @@ def get_final_df(deff, dffn, df_vswr):
     print(ddfnr.shape)
     # df_style = ddfnr.style.hide_index()
     # deff['DiversityImbalance'] = (deff.max(axis=1) - deff.min(axis=1))
+    ddfnr = ddfnr[ddfnr["CELL"].str.contains("_I") == False]
+    ddfnr['DiversityImbalance'].round(decimals=2)
+    # ~df.C.str.contains("XYZ")
     return rssi_na(ddfnr)
 
 
@@ -559,6 +562,7 @@ def app():
                     {'bottom': 0, 'top': 1, 'left': 0, 'right': 0})
                 header_top_end_format = workbook.add_format(
                     {'bottom': 0, 'top': 1, 'left': 0, 'right': 1})
+                di_format = workbook.add_format({'num_format': '#,##0.00'})
                 atof_format = workbook.add_format({'bg_color': '#8fc1f7'})
                 # footer_format.set_bg_color('skyblue')
                 # footer_format.set_bold()
@@ -576,12 +580,15 @@ def app():
 
                 col_width_list = get_col_widths(df_original)
                 col_width_list[0] = 17  # Cell
-                col_width_list[6] = 18  # RSSI_BRANCH_1
-                col_width_list[7] = 18  # RSSI_BRANCH_2
-                col_width_list[8] = 18  # RSSI_BRANCH_3
-                col_width_list[9] = 18  # RSSI_BRANCH_4
+                col_width_list[6] = 10  # RSSI_BRANCH_1
+                col_width_list[7] = 10  # RSSI_BRANCH_2
+                col_width_list[8] = 10  # RSSI_BRANCH_3
+                col_width_list[9] = 10  # RSSI_BRANCH_4
                 col_width_list[10] = 16  # DiversityImbalance
-                col_width_list[11] = 13  # VSWR_BRANCH_1
+                col_width_list[11] = 10  # VSWR_BRANCH_1
+                col_width_list[12] = 10  # VSWR_BRANCH_2
+                col_width_list[13] = 10  # VSWR_BRANCH_3
+                col_width_list[14] = 10  # VSWR_BRANCH_4
 
                 for i, width in enumerate(col_width_list):
                     worksheet.set_column(i, i, width)
@@ -593,6 +600,8 @@ def app():
                     {'bottom': 0, 'top': 1, 'left': 1, 'right': 1})
                 border_bottom_fmt = workbook.add_format(
                     {'bottom': 1, 'top': 0, 'left': 1, 'right': 1})
+                worksheet.conditional_format(xlsxwriter.utility.xl_range(
+                    2, 10, len(df_original)+2, 10), {'type': 'no_errors', 'format': di_format})
                 worksheet.conditional_format(xlsxwriter.utility.xl_range(
                     3, 0, len(df_original)+2, len(df_original.columns) - 1), {'type': 'no_errors', 'format': border_fmt})
                 worksheet.conditional_format(xlsxwriter.utility.xl_range(
