@@ -225,7 +225,7 @@ def get_combined_rssi_df(textr2, ddf_nrr):
     deff = deff.groupby('CELL').mean()
     deff.reset_index(inplace=True)
     deff = deff.rename(columns={'index': 'CELL'})
-    # deff['DI'] = (deff.max(axis=1) - deff.min(axis=1))
+    # deff['DiversityImbalance'] = (deff.max(axis=1) - deff.min(axis=1))
     Row_list = []
     # Iterate over each row
     for index, rows in deff.iterrows():
@@ -246,7 +246,7 @@ def get_combined_rssi_df(textr2, ddf_nrr):
     # Print the list
     print(Row_list)
 
-    deff['DI'] = Row_list
+    deff['DiversityImbalance'] = Row_list
     print(deff.columns)
     print(f"max ")
     return deff, rssi_date, rssi_time
@@ -288,11 +288,11 @@ def get_final_df(deff, dffn, df_vswr):
     ddfnr = ddfnr.merge(df_vswr, on='CELL', how='inner')
     print(ddfnr.columns)
     ddfnr = ddfnr.reindex(columns=['CELL', 'LNCEL_ID',  'BBMOD', 'Bandwidth', 'RMOD', 'RMOD_ID',  'RSSI_BRANCH_1', 'RSSI_BRANCH_2', 'RSSI_BRANCH_3',
-                                   'RSSI_BRANCH_4',  'DI', 'VSWR_BRANCH_1', 'VSWR_BRANCH_2', 'VSWR_BRANCH_3',
+                                   'RSSI_BRANCH_4',  'DiversityImbalance', 'VSWR_BRANCH_1', 'VSWR_BRANCH_2', 'VSWR_BRANCH_3',
                                    'VSWR_BRANCH_4'])
     print(ddfnr.shape)
     # df_style = ddfnr.style.hide_index()
-    # deff['DI'] = (deff.max(axis=1) - deff.min(axis=1))
+    # deff['DiversityImbalance'] = (deff.max(axis=1) - deff.min(axis=1))
     return rssi_na(ddfnr)
 
 
@@ -350,7 +350,11 @@ def bg_color_vswr(v):
     if (v > 1.49):
         return "red"
     else:
-        return "lightgreen"
+        return "#75c609"
+
+
+def bg_color_AtoF(v):
+    return "#79cbf7"
 
 
 rssi_dict = {'Five': (-110, -98), 'Ten': (-107, -95),
@@ -477,7 +481,7 @@ def app():
             st.write(
                 f"*Measured Time*: :point_right: {rssi_date} {rssi_time}")
             st.table(df_final.style.apply(lambda x: [
-                f"background-color: {bg_color_di(v)}" for v in x], subset=["DI"], axis=1)
+                f"background-color: {bg_color_di(v)}" for v in x], subset=["DiversityImbalance"], axis=1)
                 .apply(lambda x: [
                     f"background-color: {bg_color_vswr(v)}" for v in x],  subset=(["VSWR_BRANCH_1", "VSWR_BRANCH_2", "VSWR_BRANCH_3", "VSWR_BRANCH_4"]))
                 .apply(lambda x: [
@@ -489,7 +493,9 @@ def app():
                 .apply(lambda x: [
                     f"background-color: {bg_color_twenty(v)}" for v in x],  subset=(twenty_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"]))
                 .apply(lambda x: [
-                    f"background-color: {bg_color_nan(v)}" for v in x],  subset=(nan_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"])))
+                    f"background-color: {bg_color_nan(v)}" for v in x],  subset=(nan_list, ["RSSI_BRANCH_1", "RSSI_BRANCH_2", "RSSI_BRANCH_3", "RSSI_BRANCH_4"]))
+                .apply(lambda x: [
+                    f"background-color: {bg_color_AtoF(v)}" for v in x],  subset=(["CELL", "LNCEL_ID", "BBMOD", "Bandwidth", "RMOD", "RMOD_ID"])))
 
             # df_final.loc[df_final['Bandwidth'] == '10 MHz']
             # my_list = df_final.index[df_final['Bandwidth'].__contains__(
@@ -501,7 +507,7 @@ def app():
             # st.sidebar.write(fifteen_list)
             # st.sidebar.write(twenty_list)
             df_with_style = df_final.style.apply(lambda x: [
-                f"background-color: {bg_color_di(v)}" for v in x], subset=["DI"], axis=1)\
+                f"background-color: {bg_color_di(v)}" for v in x], subset=["DiversityImbalance"], axis=1)\
                 .apply(lambda x: [
                     f"background-color: {bg_color_vswr(v)}" for v in x],  subset=(["VSWR_BRANCH_1", "VSWR_BRANCH_2", "VSWR_BRANCH_3", "VSWR_BRANCH_4"]))\
                 .apply(lambda x: [
@@ -532,14 +538,13 @@ def app():
                 df_with_style = df_with_style.set_properties(
                     **{'text-align': 'left'})
                 df_with_style.to_excel(
-                    writer, index=False, na_rep='N/A', startrow=1)
+                    writer, index=False, na_rep='N/A', startrow=2)
 
                 workbook = writer.book
                 worksheet = writer.sheets['Sheet1']
-                header_format = workbook.add_format({'bg_color': '#b3e5fc'})
+                header_format = workbook.add_format({'bg_color': 'yellow'})
                 header_format.set_align('left')
                 header_format.set_text_wrap()
-                header_format.set_bold()
 
                 text_format = workbook.add_format()
                 text_format.set_bold()
@@ -548,14 +553,21 @@ def app():
                 text_format.set_font_color('navy')
 
                 footer_format = workbook.add_format({'bg_color': '#ffd54f'})
+                header_bottom_format = workbook.add_format(
+                    {'bg_color': '#ffd54f', 'border': 1})
+                header_top_format = workbook.add_format(
+                    {'bottom': 0, 'top': 1, 'left': 0, 'right': 0})
+                header_top_end_format = workbook.add_format(
+                    {'bottom': 0, 'top': 1, 'left': 0, 'right': 1})
+                atof_format = workbook.add_format({'bg_color': '#8fc1f7'})
                 # footer_format.set_bg_color('skyblue')
                 # footer_format.set_bold()
                 footer_format.set_font_size(11)
                 # Write the column headers with the defined format.
                 for col_num, value in enumerate(df_original.columns.values):
-                    worksheet.write(1, col_num, value, header_format)
+                    worksheet.write(2, col_num, value, header_format)
                 # Set the default height of all the rows, efficiently.
-                worksheet.set_default_row(20)
+                worksheet.set_default_row(16)
                 # Set the height of Row len(df_original)+2 to 20.
                 # worksheet.set_row(len(df_original)+2, 20)
                 # worksheet.set_row(len(df_original)+3, 20)
@@ -568,55 +580,113 @@ def app():
                 col_width_list[7] = 18  # RSSI_BRANCH_2
                 col_width_list[8] = 18  # RSSI_BRANCH_3
                 col_width_list[9] = 18  # RSSI_BRANCH_4
-                col_width_list[10] = 10  # DI
+                col_width_list[10] = 16  # DiversityImbalance
                 col_width_list[11] = 13  # VSWR_BRANCH_1
 
                 for i, width in enumerate(col_width_list):
                     worksheet.set_column(i, i, width)
-                worksheet.set_row(1, 30)  # Set the height of Row 1 to 30.
+                worksheet.set_row(1, 16)  # Set the height of Row 1 to 30.
                 # worksheet.set_column('A:A', None, format1)
                 border_fmt = workbook.add_format(
-                    {'bottom': 5, 'top': 5, 'left': 5, 'right': 5})
+                    {'bottom': 1, 'top': 1, 'left': 1, 'right': 1})
+                border_top_fmt = workbook.add_format(
+                    {'bottom': 0, 'top': 1, 'left': 1, 'right': 1})
+                border_bottom_fmt = workbook.add_format(
+                    {'bottom': 1, 'top': 0, 'left': 1, 'right': 1})
                 worksheet.conditional_format(xlsxwriter.utility.xl_range(
-                    1, 0, len(df_original)+1, len(df_original.columns) - 1), {'type': 'no_errors', 'format': border_fmt})
+                    3, 0, len(df_original)+2, len(df_original.columns) - 1), {'type': 'no_errors', 'format': border_fmt})
+                worksheet.conditional_format(xlsxwriter.utility.xl_range(
+                    3, 0, len(df_original)+2, 5), {'type': 'no_errors', 'format': atof_format})
+                worksheet.conditional_format(xlsxwriter.utility.xl_range(
+                    1, 0, 1, 14), {'type': 'no_errors', 'format': header_format})
+                worksheet.conditional_format(xlsxwriter.utility.xl_range(
+                    1, 0, 1, 5), {'type': 'no_errors', 'format': border_top_fmt})
+                worksheet.conditional_format(xlsxwriter.utility.xl_range(
+                    2, 6, 2, 9), {'type': 'no_errors', 'format': header_bottom_format})
+                worksheet.conditional_format(xlsxwriter.utility.xl_range(
+                    1, 6, 1, 9), {'type': 'no_errors', 'format': header_top_format})
+                worksheet.conditional_format(xlsxwriter.utility.xl_range(
+                    2, 11, 2, 14), {'type': 'no_errors', 'format': header_bottom_format})
+                worksheet.conditional_format(xlsxwriter.utility.xl_range(
+                    1, 11, 1, 14), {'type': 'no_errors', 'format': header_top_format})
+                worksheet.conditional_format(xlsxwriter.utility.xl_range(
+                    1, 10, 1, 10), {'type': 'no_errors', 'format': border_top_fmt})
+                worksheet.conditional_format(xlsxwriter.utility.xl_range(
+                    2, 10, 2, 10), {'type': 'no_errors', 'format': border_bottom_fmt})
+                worksheet.conditional_format(xlsxwriter.utility.xl_range(
+                    2, 0, 2, 5), {'type': 'no_errors', 'format': border_bottom_fmt})
                 # <<< Then you can write to a different row
+                worksheet.write(
+                    1, 7, "RSSI"
+                )
+                worksheet.write(
+                    1, 12, "ReturnLoss/VSWR"
+                )
+                worksheet.write(
+                    1, 14, "", header_top_end_format
+                )
+
+                worksheet.write(
+                    2, 6, "Branch 1"
+                )
+                worksheet.write(
+                    2, 7, "Branch 2"
+                )
+                worksheet.write(
+                    2, 8, "Branch 3"
+                )
+                worksheet.write(
+                    2, 9, "Branch 4"
+                )
+                worksheet.write(
+                    2, 11, "Branch 1"
+                )
+                worksheet.write(
+                    2, 12, "Branch 2"
+                )
+                worksheet.write(
+                    2, 13, "Branch 3"
+                )
+                worksheet.write(
+                    2, 14, "Branch 4"
+                )
                 worksheet.write(
                     0, 0, f"Measured Time:    {rssi_date} {rssi_time}",  text_format)
                 worksheet.write(
-                    len(df_original)+2, 0, "TargetThresholds", footer_format
+                    len(df_original)+3, 0, "TargetThresholds", footer_format
                 )
                 worksheet.write(
-                    len(df_original)+2, 1, "", footer_format
+                    len(df_original)+3, 1, "", footer_format
                 )
                 worksheet.write(
-                    len(df_original)+2, 6, "-110>5MHz<-98", footer_format
-                )
-                worksheet.write(
-                    len(df_original)+2, 7, "", footer_format
-                )
-                worksheet.write(
-                    len(df_original)+3, 6, "-107>10Mhz<-95", footer_format
+                    len(df_original)+3, 6, "-110>5MHz<-98", footer_format
                 )
                 worksheet.write(
                     len(df_original)+3, 7, "", footer_format
                 )
                 worksheet.write(
-                    len(df_original)+4, 6, "-105.2>15Mhz<-93.2", footer_format
+                    len(df_original)+4, 6, "-107>10Mhz<-95", footer_format
                 )
                 worksheet.write(
                     len(df_original)+4, 7, "", footer_format
                 )
                 worksheet.write(
-                    len(df_original)+5, 6, "-104>20Mhz<-92", footer_format
+                    len(df_original)+5, 6, "-105.2>15Mhz<-93.2", footer_format
                 )
                 worksheet.write(
                     len(df_original)+5, 7, "", footer_format
                 )
                 worksheet.write(
-                    len(df_original)+2, 10, "<3.0", footer_format
+                    len(df_original)+6, 6, "-104>20Mhz<-92", footer_format
                 )
                 worksheet.write(
-                    len(df_original)+2, 12, "<1.5", footer_format
+                    len(df_original)+6, 7, "", footer_format
+                )
+                worksheet.write(
+                    len(df_original)+3, 10, "<3.0", footer_format
+                )
+                worksheet.write(
+                    len(df_original)+3, 12, "<1.5", footer_format
                 )
 
                 writer.save()
