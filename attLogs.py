@@ -236,7 +236,7 @@ def get_combined_rssi_df(textr2, ddf_nrr):
         # st.sidebar.write(deff.columns)
         my_list = [i for i in my_list if i != 0]
         if not my_list:
-            diff_my_list = 0
+            diff_my_list = np.nan
         else:
             print(f"my_list,, {my_list}")
             diff_my_list = np.around(min(my_list) - max(my_list), 2)
