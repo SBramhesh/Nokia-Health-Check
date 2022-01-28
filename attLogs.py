@@ -584,7 +584,7 @@ def app():
                 col_width_list[7] = 10  # RSSI_BRANCH_2
                 col_width_list[8] = 10  # RSSI_BRANCH_3
                 col_width_list[9] = 10  # RSSI_BRANCH_4
-                col_width_list[10] = 16  # DiversityImbalance
+                col_width_list[10] = 17  # DiversityImbalance
                 col_width_list[11] = 10  # VSWR_BRANCH_1
                 col_width_list[12] = 10  # VSWR_BRANCH_2
                 col_width_list[13] = 10  # VSWR_BRANCH_3
