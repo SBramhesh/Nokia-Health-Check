@@ -629,7 +629,7 @@ def app():
                     1, 7, "RSSI"
                 )
                 worksheet.write(
-                    1, 12, "ReturnLoss/VSWR"
+                    1, 12, "Return Loss/VSWR"
                 )
                 worksheet.write(
                     1, 14, "", header_top_end_format
@@ -662,7 +662,7 @@ def app():
                 worksheet.write(
                     0, 0, f"Measured Time:    {rssi_date} {rssi_time}",  text_format)
                 worksheet.write(
-                    len(df_original)+3, 0, "TargetThresholds", footer_format
+                    len(df_original)+3, 0, "Target Thresholds", footer_format
                 )
                 worksheet.write(
                     len(df_original)+3, 1, "", footer_format
