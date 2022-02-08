@@ -211,9 +211,9 @@ def get_combined_rssi_df(textr2, ddf_nrr):
     # ddfnr1
 
     deff = pd.concat([ddfnr1, ddf_nrr])
-    st.sidebar.write(deff)
+    # st.sidebar.write(deff)
     deff = deff.replace(0, np.NaN)
-    st.sidebar.write(deff)
+    # st.sidebar.write(deff)
 
     # deff
     print(f"{deff.columns.tolist()}")
