@@ -211,6 +211,9 @@ def get_combined_rssi_df(textr2, ddf_nrr):
     # ddfnr1
 
     deff = pd.concat([ddfnr1, ddf_nrr])
+    st.sidebar.write(deff)
+    deff = deff.replace(0, np.NaN)
+    st.sidebar.write(deff)
 
     # deff
     print(f"{deff.columns.tolist()}")
@@ -372,21 +375,21 @@ def bg_color_five(v):
 
 
 def bg_color_ten(v):
-    if (v < rssi_dict['Ten'][0] and v > rssi_dict['Ten'][1]):
+    if (v < int(rssi_dict['Ten'][0]) or v > int(rssi_dict['Ten'][1])):
         return "red"
     else:
         return "lightgreen"
 
 
 def bg_color_fifteen(v):
-    if (v < rssi_dict['Fifteen'][0] and v > rssi_dict['Fifteen'][1]):
+    if (v < int(rssi_dict['Fifteen'][0]) or v > int(rssi_dict['Fifteen'][1])):
         return "red"
     else:
         return "lightgreen"
 
 
 def bg_color_twenty(v):
-    if (v < rssi_dict['Twenty'][0] and v > rssi_dict['Twenty'][1]):
+    if (v < int(rssi_dict['Twenty'][0]) or v > int(rssi_dict['Twenty'][1])):
         return "red"
     else:
         return "lightgreen"
