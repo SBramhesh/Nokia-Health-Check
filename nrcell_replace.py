@@ -449,7 +449,7 @@ def app():
         # for percent_complete in range(100):
         #     time.sleep(0.02)
         #     my_bar.progress(percent_complete + 1)
-        with st.spinner('Wait for it...'):
+        with st.spinner('Please Kindly Wait...'):
             for i in key_list:
                 nrcell_modify(i, nrcell_par_dict.get(i))
             # print(soup.find_all(attrs={"name": "btsName"}))mrbts_key_list = [key for key in mrbts_par_dict]
