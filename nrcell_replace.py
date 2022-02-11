@@ -105,7 +105,7 @@ def app():
         st.markdown(hide_st_style, unsafe_allow_html=True)
         option = st.selectbox(
             'FDD EQM Options',
-            ('3AHLOA(shared)_15BW_3AEHC(shared)_100BW_NoAHFIG', '3AHLOA(shared)_20BW_3AEHC(shared)_100BW_NoAHFIG', '3AHLOA(shared)_15BW+3AHFIG(shared)+3AEHC (shared)_60BW', '3AHLOA(shared)_20BW_ 3AEHC (shared)_100BW_NoAHFIG', '3AHLOA(shared)_20BW+3AHFIG (shared)_NoAEHC', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_20BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_40BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_60BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_100BW'))
+            ('3AHLOA(shared)_15BW_3AEHC(shared)_100BW_NoAHFIG', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_100BW', '3AHLOA(shared)_15BW+3AHFIG(shared)+3AEHC (shared)_60BW', '3AHLOA(shared)_20BW_ 3AEHC (shared)_100BW_NoAHFIG', '3AHLOA(shared)_20BW+3AHFIG (shared)_NoAEHC', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_20BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_40BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_60BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_100BW'))
 
         if uploaded_file_tnd_ciq is not None:
 
