@@ -376,7 +376,7 @@ def bg_color_five(v):
 
 def bg_color_ten(v):
     if (v < int(rssi_dict['Ten'][0]) or v > int(rssi_dict['Ten'][1])):
-        return "red"
+        return "#f98136"  # "#ef15e4"
     else:
         return "lightgreen"
 
