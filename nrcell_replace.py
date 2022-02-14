@@ -18,448 +18,461 @@ xml_str = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><html><body><r
 
 def app():
     st.title('5G Nokia Scripting')
-    with st.container():
+    st.session_state['download'] = False
 
-        hide_st_style = """
-                <style>
-                # MainMenu {visibility: hidden;}
-                footer {visibility: hidden;}
-                header {visibility: hidden;}
-                </style>
-                """
-        st.markdown(hide_st_style, unsafe_allow_html=True)
+    def process_xml():
+        if uploaded_file_tnd_ciq is not None and uploaded_file_nr_ciq is not None:
 
-        # col1, col2 = st.columns([1, 3])
+            # my_bar = st.progress(0)
 
-        # col1.markdown('**Upload NR CIQ file**.')
-        uploaded_file_nr_ciq = st.file_uploader(
-            "Upload NR CIQ File", key="nrciq")
+            # for percent_complete in range(100):
+            #     time.sleep(0.02)
+            #     my_bar.progress(percent_complete + 1)
+            with st.spinner('Please Kindly Wait...'):
+                for i in key_list:
+                    nrcell_modify(i, nrcell_par_dict.get(i))
+                # print(soup.find_all(attrs={"name": "btsName"}))mrbts_key_list = [key for key in mrbts_par_dict]
+                # print(key_list)
+                for mi in mrbts_key_list:
+                    modify_mrbts_tag(mi, mrbts_par_dict.get(mi))
+                process_tnd_pars()
+                st.success('XML successfully parsed :point_down:!!')
+                # st.write(f"*VSWR*: :point_down:")
+            st.session_state['download'] = True
 
-        # def form_callback():
-        #     print(st.session_state.my_slider)
-        #     print(st.session_state.my_checkbox)
+    with st.form("my_form"):
+        with st.container():
 
-        if uploaded_file_nr_ciq is not None:
+            hide_st_style = """
+                    <style>
+                    # MainMenu {visibility: hidden;}
+                    footer {visibility: hidden;}
+                    header {visibility: hidden;}
+                    </style>
+                    """
+            st.markdown(hide_st_style, unsafe_allow_html=True)
 
-            uploadedfn = uploaded_file_nr_ciq.name
-            siteid = uploadedfn.split('.')[0][3:]
+            # col1, col2 = st.columns([1, 3])
 
-            # To read file as bytes:
-            bytes_data = uploaded_file_nr_ciq.getvalue()
-            # st.write(bytes_data)
+            # col1.markdown('**Upload NR CIQ file**.')
+            uploaded_file_nr_ciq = st.file_uploader(
+                "Upload NR CIQ File", key="nrciq")
 
-            # To convert to a string based() IO:
-            # stringio = StringIO(uploaded_file_nr_ciq.getvalue().decode("utf-8"))
-            # st.write(stringio)
+            # def form_callback():
+            #     print(st.session_state.my_slider)
+            #     print(st.session_state.my_checkbox)
 
-            # To read file as string:
-            # nr_ciq_data = stringio.read()
+            if uploaded_file_nr_ciq is not None:
 
-            ciq_siteMain = pd.read_excel(
-                uploaded_file_nr_ciq, sheet_name='SiteMainPar', header=3, skiprows=None)
-            ciq_siteMain = ciq_siteMain.dropna(thresh=3)
-            ciq_siteMain = ciq_siteMain.iloc[:, 1:]
-            # ciq_siteMain.head(10)
+                uploadedfn = uploaded_file_nr_ciq.name
+                siteid = uploadedfn.split('.')[0][3:]
 
-            ciq_cell_par = pd.read_excel(
-                uploaded_file_nr_ciq, sheet_name='CellPar', header=3, skiprows=None)
-            ciq_cell_par = ciq_cell_par.dropna(thresh=5)
-            ciq_cell_par = ciq_cell_par.iloc[:, 1:]
-            # ciq_cell_par
+                # To read file as bytes:
+                bytes_data = uploaded_file_nr_ciq.getvalue()
+                # st.write(bytes_data)
 
-            inr_cell_par = pd.read_excel(
-                uploaded_file_nr_ciq, sheet_name='Idle Inter NR', header=3, skiprows=None)
-            inr_cell_par = inr_cell_par.dropna(thresh=5)
-            inr_cell_par = inr_cell_par.iloc[:, 1:]
-            # inr_cell_par
+                # To convert to a string based() IO:
+                # stringio = StringIO(uploaded_file_nr_ciq.getvalue().decode("utf-8"))
+                # st.write(stringio)
 
-    with st.container():
+                # To read file as string:
+                # nr_ciq_data = stringio.read()
 
-        hide_st_style = """
-                <style>
-                # MainMenu {visibility: hidden;}
-                footer {visibility: hidden;}
-                header {visibility: hidden;}
-                </style>
-                """
-        st.markdown(hide_st_style, unsafe_allow_html=True)
+                ciq_siteMain = pd.read_excel(
+                    uploaded_file_nr_ciq, sheet_name='SiteMainPar', header=3, skiprows=None)
+                ciq_siteMain = ciq_siteMain.dropna(thresh=3)
+                ciq_siteMain = ciq_siteMain.iloc[:, 1:]
+                # ciq_siteMain.head(10)
 
-        # col1, col2 = st.columns([1, 3])
+                ciq_cell_par = pd.read_excel(
+                    uploaded_file_nr_ciq, sheet_name='CellPar', header=3, skiprows=None)
+                ciq_cell_par = ciq_cell_par.dropna(thresh=5)
+                ciq_cell_par = ciq_cell_par.iloc[:, 1:]
+                # ciq_cell_par
 
-        # col1.markdown('**Upload TND CIQ file**.')
-        uploaded_file_tnd_ciq = st.file_uploader(
-            "Upload TND CIQ File", key="tndciq")
+                inr_cell_par = pd.read_excel(
+                    uploaded_file_nr_ciq, sheet_name='Idle Inter NR', header=3, skiprows=None)
+                inr_cell_par = inr_cell_par.dropna(thresh=5)
+                inr_cell_par = inr_cell_par.iloc[:, 1:]
+                # inr_cell_par
 
-        # def form_callback():
-        #     print(st.session_state.my_slider)
-        #     print(st.session_state.my_checkbox)
-    with st.container():
+        with st.container():
 
-        hide_st_style = """
-                <style>
-                # MainMenu {visibility: hidden;}
-                footer {visibility: hidden;}
-                header {visibility: hidden;}
-                </style>
-                """
-        st.markdown(hide_st_style, unsafe_allow_html=True)
-        option = st.selectbox(
-            'FDD EQM Options',
-            ('3AHLOA(shared)_15BW_3AEHC(shared)_100BW_NoAHFIG', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_100BW', '3AHLOA(shared)_15BW+3AHFIG(shared)+3AEHC (shared)_60BW', '3AHLOA(shared)_20BW_ 3AEHC (shared)_100BW_NoAHFIG', '3AHLOA(shared)_20BW+3AHFIG (shared)_NoAEHC', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_20BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_40BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_60BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_100BW'))
+            hide_st_style = """
+                    <style>
+                    # MainMenu {visibility: hidden;}
+                    footer {visibility: hidden;}
+                    header {visibility: hidden;}
+                    </style>
+                    """
+            st.markdown(hide_st_style, unsafe_allow_html=True)
 
-        if uploaded_file_tnd_ciq is not None:
+            # col1, col2 = st.columns([1, 3])
 
-            uploadedfn_tnd = uploaded_file_tnd_ciq.name
-            # siteid = uploadedfn.split('.')[0][3:]
+            # col1.markdown('**Upload TND CIQ file**.')
+            uploaded_file_tnd_ciq = st.file_uploader(
+                "Upload TND CIQ File", key="tndciq")
 
-            # To read file as bytes:
-            bytes_data = uploaded_file_tnd_ciq.getvalue()
-            # st.write(bytes_data)
+            # def form_callback():
+            #     print(st.session_state.my_slider)
+            #     print(st.session_state.my_checkbox)
+        with st.container():
 
-            # To convert to a string based() IO:
-            # stringio = StringIO(uploaded_file_tnd_ciq.getvalue().decode("utf-8"))
+            hide_st_style = """
+                    <style>
+                    # MainMenu {visibility: hidden;}
+                    footer {visibility: hidden;}
+                    header {visibility: hidden;}
+                    </style>
+                    """
+            st.markdown(hide_st_style, unsafe_allow_html=True)
+            option = st.selectbox(
+                'FDD EQM Options',
+                ('3AHLOA(shared)_15BW_3AEHC(shared)_100BW_NoAHFIG', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_100BW', '3AHLOA(shared)_15BW+3AHFIG(shared)+3AEHC (shared)_60BW', '3AHLOA(shared)_20BW_ 3AEHC (shared)_100BW_NoAHFIG', '3AHLOA(shared)_20BW+3AHFIG (shared)_NoAEHC', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_20BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_40BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_60BW', '3AHLOA(shared)_20BW+3AHFIG(shared)+3AEHC (shared)_100BW'))
 
-            tnd_nokia = pd.read_excel(uploaded_file_tnd_ciq,
-                                      sheet_name='gNodeB Nokia', header=4, skiprows=None)
-            tnd_nokia = tnd_nokia.dropna(thresh=5)
-            tnd_nokia = tnd_nokia.iloc[:, :]
-    # tnd_nokia
+            if uploaded_file_tnd_ciq is not None:
 
-    # with open(xml_path, 'r') as f:
-    #     file = f.read()
+                uploadedfn_tnd = uploaded_file_tnd_ciq.name
+                # siteid = uploadedfn.split('.')[0][3:]
 
-    # 'xml' is the parser used. For html files, which BeautifulSoup is typically used for, it would be 'html.parser'.
-    soup = BeautifulSoup(xml_str)
-    print("--cellNAme---")
-    print(soup.find_all(attrs={"name": "cellName"}))
-    print("--cellName End---")
+                # To read file as bytes:
+                bytes_data = uploaded_file_tnd_ciq.getvalue()
+                # st.write(bytes_data)
 
-    # tree = ET.parse(xml_path)
-    # root = tree.getroot()
-    # print(root.tag)
-    # # print(root.attrib)
-    # # for child in root:
-    # #     print(child.tag, child.attrib)
-    # for neighbor in root.iter('header'):
-    #     print(neighbor.attrib)
-    # rooot = ET.fromstring(tree)
+                # To convert to a string based() IO:
+                # stringio = StringIO(uploaded_file_tnd_ciq.getvalue().decode("utf-8"))
 
-    # TND ---
+                tnd_nokia = pd.read_excel(uploaded_file_tnd_ciq,
+                                          sheet_name='gNodeB Nokia', header=4, skiprows=None)
+                tnd_nokia = tnd_nokia.dropna(thresh=5)
+                tnd_nokia = tnd_nokia.iloc[:, :]
+        # tnd_nokia
 
-    def get_tnd_dict(parName):
-        mode = tnd_nokia[str(parName)]
-        lcrid = tnd_nokia['gNodeB name']
-        mode_lst = mode.to_list()
-        lcrid_lst = lcrid.to_list()
-        comb_list = zip(mode_lst, lcrid_lst)
-        # # print(set(comb_list))
-        # for mode, lcrid in enumerate(comb_list):
-        #     print(mode, lcrid)
-        dict = {lcrid: mode for mode, lcrid in comb_list}
-        return dict
+        # with open(xml_path, 'r') as f:
+        #     file = f.read()
 
-    def replace_tnd_par1(parName, mf_dict):
-        mf_tags = soup.find_all(attrs={"name": str(parName)})
-        bts_tags = soup.find_all(attrs={"name": "btsName"})
-        bts_name = bts_tags[-1].text
-        for mf_tag in mf_tags:
-            print(f"parent is-->>>>>>>>>>>>> ..{mf_tag.parent.name}")
-    #         print(f'printing the managedobject class...{str(mf_tag.find_parents("managedobject"))}')
-    #         soup_m = BeautifulSoup(str(mf_tag.find_parents("managedobject")))
-    #         print(soup_m.prettify())
-    #         tag_m = soup_m.managedobject
-    #         print(f"class is..{tag['distname']}")
-    #         print("printing the cell number" + mf_tag.parent['distname'].split('-')[-1])
-    #         print(mf_dict.get(int(mf_tag.parent['distname'].split('-')[-1])))
-            print('---')
-            if mf_tag.parent.name.find('managedobject') > -1:
-                # localIpAddr IPF-1
-                if mf_tag.parent['distname'].find('IPIF-1/IPADDRESSV4-2') > -1:
+        # 'xml' is the parser used. For html files, which BeautifulSoup is typically used for, it would be 'html.parser'.
+        soup = BeautifulSoup(xml_str)
+        print("--cellNAme---")
+        print(soup.find_all(attrs={"name": "cellName"}))
+        print("--cellName End---")
+
+        # tree = ET.parse(xml_path)
+        # root = tree.getroot()
+        # print(root.tag)
+        # # print(root.attrib)
+        # # for child in root:
+        # #     print(child.tag, child.attrib)
+        # for neighbor in root.iter('header'):
+        #     print(neighbor.attrib)
+        # rooot = ET.fromstring(tree)
+
+        # TND ---
+
+        def get_tnd_dict(parName):
+            mode = tnd_nokia[str(parName)]
+            lcrid = tnd_nokia['gNodeB name']
+            mode_lst = mode.to_list()
+            lcrid_lst = lcrid.to_list()
+            comb_list = zip(mode_lst, lcrid_lst)
+            # # print(set(comb_list))
+            # for mode, lcrid in enumerate(comb_list):
+            #     print(mode, lcrid)
+            dict = {lcrid: mode for mode, lcrid in comb_list}
+            return dict
+
+        def replace_tnd_par1(parName, mf_dict):
+            mf_tags = soup.find_all(attrs={"name": str(parName)})
+            bts_tags = soup.find_all(attrs={"name": "btsName"})
+            bts_name = bts_tags[-1].text
+            for mf_tag in mf_tags:
+                print(f"parent is-->>>>>>>>>>>>> ..{mf_tag.parent.name}")
+        #         print(f'printing the managedobject class...{str(mf_tag.find_parents("managedobject"))}')
+        #         soup_m = BeautifulSoup(str(mf_tag.find_parents("managedobject")))
+        #         print(soup_m.prettify())
+        #         tag_m = soup_m.managedobject
+        #         print(f"class is..{tag['distname']}")
+        #         print("printing the cell number" + mf_tag.parent['distname'].split('-')[-1])
+        #         print(mf_dict.get(int(mf_tag.parent['distname'].split('-')[-1])))
+                print('---')
+                if mf_tag.parent.name.find('managedobject') > -1:
+                    # localIpAddr IPF-1
+                    if mf_tag.parent['distname'].find('IPIF-1/IPADDRESSV4-2') > -1:
+                        mf_val = mf_dict.get(bts_name.lstrip().rstrip())
+                        print(f"bstName is..{bts_name}")
+                        print(f"localIpAddr IPF-1  is.. {mf_val}")
+                        mf_tag.string = str(mf_val)
+
+                elif mf_tag.parent.parent.parent['distname'].find('IPNO-1/IPRT-1') > -1:
                     mf_val = mf_dict.get(bts_name.lstrip().rstrip())
                     print(f"bstName is..{bts_name}")
-                    print(f"localIpAddr IPF-1  is.. {mf_val}")
+                    print(f"ip address  is.. {mf_val}")
                     mf_tag.string = str(mf_val)
 
-            elif mf_tag.parent.parent.parent['distname'].find('IPNO-1/IPRT-1') > -1:
-                mf_val = mf_dict.get(bts_name.lstrip().rstrip())
-                print(f"bstName is..{bts_name}")
-                print(f"ip address  is.. {mf_val}")
-                mf_tag.string = str(mf_val)
-
-    def replace_tnd_par2(parName, mf_dict):
-        mf_tags = soup.find_all(attrs={"name": str(parName)})
-        bts_tags = soup.find_all(attrs={"name": "btsName"})
-        bts_name = bts_tags[-1].text
-        for mf_tag in mf_tags:
-            print(f"parent is-->>>>>>>>>>>>> ..{mf_tag.parent.name}")
-    #         print(f'printing the managedobject class...{str(mf_tag.find_parents("managedobject"))}')
-    #         soup_m = BeautifulSoup(str(mf_tag.find_parents("managedobject")))
-    #         print(soup_m.prettify())
-    #         tag_m = soup_m.managedobject
-    #         print(f"class is..{tag['distname']}")
-    #         print("printing the cell number" + mf_tag.parent['distname'].split('-')[-1])
-    #         print(mf_dict.get(int(mf_tag.parent['distname'].split('-')[-1])))
-            print('---')
-            if mf_tag.parent.name.find('managedobject') > -1:
-                # localIpAddr IPF-2
-                if mf_tag.parent['distname'].find('IPIF-2/IPADDRESSV4-1') > -1:
+        def replace_tnd_par2(parName, mf_dict):
+            mf_tags = soup.find_all(attrs={"name": str(parName)})
+            bts_tags = soup.find_all(attrs={"name": "btsName"})
+            bts_name = bts_tags[-1].text
+            for mf_tag in mf_tags:
+                print(f"parent is-->>>>>>>>>>>>> ..{mf_tag.parent.name}")
+        #         print(f'printing the managedobject class...{str(mf_tag.find_parents("managedobject"))}')
+        #         soup_m = BeautifulSoup(str(mf_tag.find_parents("managedobject")))
+        #         print(soup_m.prettify())
+        #         tag_m = soup_m.managedobject
+        #         print(f"class is..{tag['distname']}")
+        #         print("printing the cell number" + mf_tag.parent['distname'].split('-')[-1])
+        #         print(mf_dict.get(int(mf_tag.parent['distname'].split('-')[-1])))
+                print('---')
+                if mf_tag.parent.name.find('managedobject') > -1:
+                    # localIpAddr IPF-2
+                    if mf_tag.parent['distname'].find('IPIF-2/IPADDRESSV4-1') > -1:
+                        mf_val = mf_dict.get(bts_name.lstrip().rstrip())
+                        print(f"bstName is..{bts_name}")
+                        print(f"localIpAddr IPF-2  is.. {mf_val}")
+                        mf_tag.string = str(mf_val)
+                elif mf_tag.parent.parent.parent['distname'].find('IPNO-1/IPRT-1') > -1:
                     mf_val = mf_dict.get(bts_name.lstrip().rstrip())
                     print(f"bstName is..{bts_name}")
-                    print(f"localIpAddr IPF-2  is.. {mf_val}")
+                    print(f"ip address  is.. {mf_val}")
                     mf_tag.string = str(mf_val)
-            elif mf_tag.parent.parent.parent['distname'].find('IPNO-1/IPRT-1') > -1:
-                mf_val = mf_dict.get(bts_name.lstrip().rstrip())
-                print(f"bstName is..{bts_name}")
-                print(f"ip address  is.. {mf_val}")
-                mf_tag.string = str(mf_val)
 
-    def replace_tnd_vlan(parName, mf_dict):
-        mf_tags = soup.find_all(attrs={"name": str(parName)})
-        bts_tags = soup.find_all(attrs={"name": "btsName"})
-        bts_name = bts_tags[-1].text
-        for mf_tag in mf_tags:
-            print(f"parent is-->>>>>>>>>>>>> ..{mf_tag.parent.name}")
+        def replace_tnd_vlan(parName, mf_dict):
+            mf_tags = soup.find_all(attrs={"name": str(parName)})
+            bts_tags = soup.find_all(attrs={"name": "btsName"})
+            bts_name = bts_tags[-1].text
+            for mf_tag in mf_tags:
+                print(f"parent is-->>>>>>>>>>>>> ..{mf_tag.parent.name}")
+                print('---')
+                if mf_tag.parent.name.find('managedobject') > -1:
+                    # localIpAddr IPF-2
+                    if mf_tag.parent['distname'].find('ETHIF-1/VLANIF-1') > -1:
+                        mf_val = mf_dict.get(bts_name.lstrip().rstrip())
+                        print(f"bstName is..{bts_name}")
+                        print(f"vlan ID  is.. {int(mf_val)}")
+                        mf_tag.string = str(int(mf_val))
+
+        # MRBTS ---
+
+        # MRBTS-1841114/EQM-1/APEQM-1
+        # MRBTS-1841114/EQM-1/APEQM-1/RMOD-5/PHYANT-1
+        # str.replace("is", "was")
+
+        def replace_mrbts_id(mrbts_str, new_id):
+            list = mrbts_str.split('/')
+            m_list = list[1:]
+            print(m_list)
+            suffix = '/'.join(m_list)
+            print(suffix)
+            id_str = list[0]
+            new_id_str = id_str.replace(id_str.split('-')[1], str(new_id))
+            result_str = new_id_str + '/' + suffix
+            print(result_str)
+            return result_str
+
+        def get_mrbts_value(parName):
+            par_col = ciq_siteMain[parName]
+            print(par_col.to_list())
+            par_str = par_col.to_list()[-1]
+        #     bts_str = 'NPH20115B'
+            print(par_str)
+            return par_str
+
+        def modify_mrbts_tag(attr_name, mrbts_par):
+            bts_tags = soup.find_all(attrs={"name": str(attr_name)})
+            for bts_tag in bts_tags:
+                if str(bts_tag.parent['class']).find('RMOD') > -1:
+                    print(f"Modifying {attr_name}..")
+                    print(f"printing text..{str(bts_tag.text)}")
+                    print(str(get_mrbts_value(mrbts_par)))
+                    bts_tag.string = replace_mrbts_id(
+                        str(bts_tag.text), str(get_mrbts_value(mrbts_par)))
+                    # Also replace all MRBTS ids in managedobjects
+                    tagz = soup.find_all('managedobject')
+                    for tag in tagz:
+                        print(f"-----")
+                        print(tag['distname'])
+                        tag['distname'] = replace_mrbts_id(
+                            tag['distname'], str(get_mrbts_value('mrBtsId')))
+                elif str(bts_tag.parent['class']).find('MRBTS') or str(bts_tag.parent['class']).find('APEQM') > -1:
+                    print(f"Modifying {attr_name}..")
+                    bts_tag.string = str(get_mrbts_value(mrbts_par))
+
+        # NRCELL---
+
+        def get_nrcell_dict(parName):
+            mode = ciq_cell_par[str(parName)]
+            lcrid = ciq_cell_par['lcrid']
+            mode_lst = mode.to_list()
+            lcrid_lst = lcrid.to_list()
+            comb_list = zip(mode_lst, lcrid_lst)
+            # # print(set(comb_list))
+            # for mode, lcrid in enumerate(comb_list):
+            #     print(mode, lcrid)
+            dict = {lcrid: mode for mode, lcrid in comb_list}
+            print(dict)
             print('---')
-            if mf_tag.parent.name.find('managedobject') > -1:
-                # localIpAddr IPF-2
-                if mf_tag.parent['distname'].find('ETHIF-1/VLANIF-1') > -1:
-                    mf_val = mf_dict.get(bts_name.lstrip().rstrip())
-                    print(f"bstName is..{bts_name}")
-                    print(f"vlan ID  is.. {int(mf_val)}")
-                    mf_tag.string = str(int(mf_val))
+            print(dict.get(1))
+            # print(list(mode))
+            mode_set = set(mode.to_list())
+            # print(mode_set)
+        #     mode_list = mode_set.to_list()
+            # print(len(mode_list))
+            return dict
 
-    # MRBTS ---
+        def get_idle_dict(parName):
+            mode = inr_cell_par[str(parName)]
+            lcrid = inr_cell_par['nrIrfimId']
+            mode_lst = mode.to_list()
+            lcrid_lst = lcrid.to_list()
+            comb_list = zip(mode_lst, lcrid_lst)
+            # # print(set(comb_list))
+            # for mode, lcrid in enumerate(comb_list):
+            #     print(mode, lcrid)
+            dict = {lcrid: mode for mode, lcrid in comb_list}
+            print(dict)
+            print('---')
+            print(dict.get(1))
+            # print(list(mode))
+            mode_set = set(mode.to_list())
+            # print(mode_set)
+        #     mode_list = mode_set.to_list()
+            # print(len(mode_list))
+            return dict
 
-    # MRBTS-1841114/EQM-1/APEQM-1
-    # MRBTS-1841114/EQM-1/APEQM-1/RMOD-5/PHYANT-1
-    # str.replace("is", "was")
+        def replace_nrcell_par(parName, mf_dict):
+            print(f"inside replace function par name..{parName}")
+            print(f"inside replace function mf dict {mf_dict}")
+            mf_tags = soup.find_all(attrs={"name": parName.rstrip().lstrip()})
+            print(f"--{parName}---")
+            print(f"mf tags..{mf_tags}")
+            print(f"--End{parName}---")
+            for mf_tag in mf_tags:
+                # print(f"parent is-->>>>>>>>>>>>> ..{mf_tag.parent.name}")
+                #         print(f'printing the managedobject class...{str(mf_tag.find_parents("managedobject"))}')
+                #         soup_m = BeautifulSoup(str(mf_tag.find_parents("managedobject")))
+                #         print(soup_m.prettify())
+                #         tag_m = soup_m.managedobject
+                #         print(f"class is..{tag['distname']}")
+                #         print("printing the cell number" + mf_tag.parent['distname'].split('-')[-1])
+                #         print(mf_dict.get(int(mf_tag.parent['distname'].split('-')[-1])))
+                #         print('---')
+                if mf_tag.parent.name.find('managedobject') > -1:
+                    if mf_tag.parent['class'][-1].find('NRCELL') > -1:
+                        mf_val = mf_dict.get(
+                            int(mf_tag.parent['distname'].split('-')[-1]))
+                        print(f"replacing with value..{mf_val}")
+                        mf_tag.string = str(mf_val)
+                    elif mf_tag.parent['class'][-1].find('NRPLMNSET_NSA') > -1:
+                        #                 mf_val = mf_dict.get(int(mf_tag.parent['distname'].split('/')[2].split('-')[-1]))
+                        cell_value = re.findall(
+                            r'NRCELL-[0-9]+', mf_tag.parent['distname'])[-1].split('-')[1]
+                        print(f"cell value is..{cell_value}")
+                        mf_val = mf_dict.get(int(cell_value))
+                        print(f"the  mf value is.. {str(mf_val)}")
+                        mf_tag.string = str(mf_val)
+        #           name="trackingAreaDN"
+                    elif mf_tag.parent['class'][-1].find('NRPLMNSET_SA') > -1:
+                        cell_value = re.findall(
+                            r'NRCELL-[0-9]+', mf_tag.parent['distname'])[-1].split('-')[1]
+                        print(f"cell value is..{cell_value}")
+                        mf_val = mf_dict.get(int(cell_value))
+                        print(f"the  mf value is.. {str(mf_val)}")
+                        existing_tdn = re.findall(
+                            r'TRACKINGAREA-[0-9]+', mf_tag.text)[-1].split('-')[1]
+                        print(f"existing tracking area is..{existing_tdn}")
+                        print(f"text is..{mf_tag.text}")
+                        replacement_text = mf_tag.text.replace(
+                            str(existing_tdn), str(mf_val))
+                        print(f"replacement text is .. {replacement_text}")
+                        mf_tag.string = str(replacement_text)
+                    # fiveGsTac
+                    elif mf_tag.parent['class'][-1].find('TRACKINGAREA') > -1:
+                        cell_value = 1  # fiveGsTac requirement
+                        print(f"cell value is..{cell_value}")
+                        mf_val = mf_dict.get(int(cell_value))
+                        print(f"the  mf value is.. {str(mf_val)}")
+                        existing_tdn = re.findall(
+                            r'TRACKINGAREA-[0-9]+', mf_tag.parent['distname'])[-1].split('-')[1]
+                        print(f"existing tracking area is..{existing_tdn}")
+                        print(f"text is..{mf_tag.parent['distname']}")
+                        replacement_text = mf_tag.parent['distname'].replace(
+                            str(existing_tdn), str(mf_val))
+                        print(f"replacement text is .. {replacement_text}")
+                        mf_tag.string = str(mf_val)
+                        mf_tag.parent['distname'] = str(replacement_text)
+                    # dlCarrierFreq
+                    elif mf_tag.parent['class'][-1].find('NRIRFIM') > -1:
+                        cell_value = re.findall(
+                            r'NRIRFIM-[0-9]+', mf_tag.parent['distname'])[-1].split('-')[1]
+                        print(f"cell value is..{cell_value}")
+                        mf_val = mf_dict.get(int(cell_value))
+                        print(f"the  mf value is.. {str(mf_val)}")
+                        mf_tag.string = str(mf_val)
 
-    def replace_mrbts_id(mrbts_str, new_id):
-        list = mrbts_str.split('/')
-        m_list = list[1:]
-        print(m_list)
-        suffix = '/'.join(m_list)
-        print(suffix)
-        id_str = list[0]
-        new_id_str = id_str.replace(id_str.split('-')[1], str(new_id))
-        result_str = new_id_str + '/' + suffix
-        print(result_str)
-        return result_str
+        def nrcell_modify(key, value):
+            if value.find('dlCarrierFreq') > -1:
+                pci_dict = get_idle_dict(str(value))
+                print(f"pMax Dict..{pci_dict}")
+            else:
+                pci_dict = get_nrcell_dict(str(value))
+                print(f"pMax Dict..{pci_dict}")
+                print(str(key))
 
-    def get_mrbts_value(parName):
-        par_col = ciq_siteMain[parName]
-        print(par_col.to_list())
-        par_str = par_col.to_list()[-1]
-    #     bts_str = 'NPH20115B'
-        print(par_str)
-        return par_str
+            replace_nrcell_par(str(key), pci_dict)
 
-    def modify_mrbts_tag(attr_name, mrbts_par):
-        bts_tags = soup.find_all(attrs={"name": str(attr_name)})
-        for bts_tag in bts_tags:
-            if str(bts_tag.parent['class']).find('RMOD') > -1:
-                print(f"Modifying {attr_name}..")
-                print(f"printing text..{str(bts_tag.text)}")
-                print(str(get_mrbts_value(mrbts_par)))
-                bts_tag.string = replace_mrbts_id(
-                    str(bts_tag.text), str(get_mrbts_value(mrbts_par)))
-                # Also replace all MRBTS ids in managedobjects
-                tagz = soup.find_all('managedobject')
-                for tag in tagz:
-                    print(f"-----")
-                    print(tag['distname'])
-                    tag['distname'] = replace_mrbts_id(
-                        tag['distname'], str(get_mrbts_value('mrBtsId')))
-            elif str(bts_tag.parent['class']).find('MRBTS') or str(bts_tag.parent['class']).find('APEQM') > -1:
-                print(f"Modifying {attr_name}..")
-                bts_tag.string = str(get_mrbts_value(mrbts_par))
+        def process_tnd_pars():
+            tnd_dict = get_tnd_dict('CORENET Default  Gateway (s1,x2,U,C)')
+            print(tnd_dict.get('NPH20115B'))
 
-    # NRCELL---
+            replace_tnd_par1('gateway', tnd_dict)
 
-    def get_nrcell_dict(parName):
-        mode = ciq_cell_par[str(parName)]
-        lcrid = ciq_cell_par['lcrid']
-        mode_lst = mode.to_list()
-        lcrid_lst = lcrid.to_list()
-        comb_list = zip(mode_lst, lcrid_lst)
-        # # print(set(comb_list))
-        # for mode, lcrid in enumerate(comb_list):
-        #     print(mode, lcrid)
-        dict = {lcrid: mode for mode, lcrid in comb_list}
-        print(dict)
-        print('---')
-        print(dict.get(1))
-        # print(list(mode))
-        mode_set = set(mode.to_list())
-        # print(mode_set)
-    #     mode_list = mode_set.to_list()
-        # print(len(mode_list))
-        return dict
+            col18_dict = get_tnd_dict(
+                "gNodeB's user plane IP address   (s1,x2)")
+            print(col18_dict.get('NPH20115B'))
+            replace_tnd_par1('localIpAddr', col18_dict)
 
-    def get_idle_dict(parName):
-        mode = inr_cell_par[str(parName)]
-        lcrid = inr_cell_par['nrIrfimId']
-        mode_lst = mode.to_list()
-        lcrid_lst = lcrid.to_list()
-        comb_list = zip(mode_lst, lcrid_lst)
-        # # print(set(comb_list))
-        # for mode, lcrid in enumerate(comb_list):
-        #     print(mode, lcrid)
-        dict = {lcrid: mode for mode, lcrid in comb_list}
-        print(dict)
-        print('---')
-        print(dict.get(1))
-        # print(list(mode))
-        mode_set = set(mode.to_list())
-        # print(mode_set)
-    #     mode_list = mode_set.to_list()
-        # print(len(mode_list))
-        return dict
+            col14_dict = get_tnd_dict("gNodeB OAM IP address")
+            print(col14_dict.get('NPH20115B'))
+            replace_tnd_par2('localIpAddr', col14_dict)
 
-    def replace_nrcell_par(parName, mf_dict):
-        print(f"inside replace function par name..{parName}")
-        print(f"inside replace function mf dict {mf_dict}")
-        mf_tags = soup.find_all(attrs={"name": parName.rstrip().lstrip()})
-        print(f"--{parName}---")
-        print(f"mf tags..{mf_tags}")
-        print(f"--End{parName}---")
-        for mf_tag in mf_tags:
-            # print(f"parent is-->>>>>>>>>>>>> ..{mf_tag.parent.name}")
-            #         print(f'printing the managedobject class...{str(mf_tag.find_parents("managedobject"))}')
-            #         soup_m = BeautifulSoup(str(mf_tag.find_parents("managedobject")))
-            #         print(soup_m.prettify())
-            #         tag_m = soup_m.managedobject
-            #         print(f"class is..{tag['distname']}")
-            #         print("printing the cell number" + mf_tag.parent['distname'].split('-')[-1])
-            #         print(mf_dict.get(int(mf_tag.parent['distname'].split('-')[-1])))
-            #         print('---')
-            if mf_tag.parent.name.find('managedobject') > -1:
-                if mf_tag.parent['class'][-1].find('NRCELL') > -1:
-                    mf_val = mf_dict.get(
-                        int(mf_tag.parent['distname'].split('-')[-1]))
-                    print(f"replacing with value..{mf_val}")
-                    mf_tag.string = str(mf_val)
-                elif mf_tag.parent['class'][-1].find('NRPLMNSET_NSA') > -1:
-                    #                 mf_val = mf_dict.get(int(mf_tag.parent['distname'].split('/')[2].split('-')[-1]))
-                    cell_value = re.findall(
-                        r'NRCELL-[0-9]+', mf_tag.parent['distname'])[-1].split('-')[1]
-                    print(f"cell value is..{cell_value}")
-                    mf_val = mf_dict.get(int(cell_value))
-                    print(f"the  mf value is.. {str(mf_val)}")
-                    mf_tag.string = str(mf_val)
-    #           name="trackingAreaDN"
-                elif mf_tag.parent['class'][-1].find('NRPLMNSET_SA') > -1:
-                    cell_value = re.findall(
-                        r'NRCELL-[0-9]+', mf_tag.parent['distname'])[-1].split('-')[1]
-                    print(f"cell value is..{cell_value}")
-                    mf_val = mf_dict.get(int(cell_value))
-                    print(f"the  mf value is.. {str(mf_val)}")
-                    existing_tdn = re.findall(
-                        r'TRACKINGAREA-[0-9]+', mf_tag.text)[-1].split('-')[1]
-                    print(f"existing tracking area is..{existing_tdn}")
-                    print(f"text is..{mf_tag.text}")
-                    replacement_text = mf_tag.text.replace(
-                        str(existing_tdn), str(mf_val))
-                    print(f"replacement text is .. {replacement_text}")
-                    mf_tag.string = str(replacement_text)
-                # fiveGsTac
-                elif mf_tag.parent['class'][-1].find('TRACKINGAREA') > -1:
-                    cell_value = 1  # fiveGsTac requirement
-                    print(f"cell value is..{cell_value}")
-                    mf_val = mf_dict.get(int(cell_value))
-                    print(f"the  mf value is.. {str(mf_val)}")
-                    existing_tdn = re.findall(
-                        r'TRACKINGAREA-[0-9]+', mf_tag.parent['distname'])[-1].split('-')[1]
-                    print(f"existing tracking area is..{existing_tdn}")
-                    print(f"text is..{mf_tag.parent['distname']}")
-                    replacement_text = mf_tag.parent['distname'].replace(
-                        str(existing_tdn), str(mf_val))
-                    print(f"replacement text is .. {replacement_text}")
-                    mf_tag.string = str(mf_val)
-                    mf_tag.parent['distname'] = str(replacement_text)
-                # dlCarrierFreq
-                elif mf_tag.parent['class'][-1].find('NRIRFIM') > -1:
-                    cell_value = re.findall(
-                        r'NRIRFIM-[0-9]+', mf_tag.parent['distname'])[-1].split('-')[1]
-                    print(f"cell value is..{cell_value}")
-                    mf_val = mf_dict.get(int(cell_value))
-                    print(f"the  mf value is.. {str(mf_val)}")
-                    mf_tag.string = str(mf_val)
+            vlan_dict = get_tnd_dict(
+                "CORENET AAV Ethernet VLAN ID (s1,x2,U,C)")
+            print(vlan_dict.get('NPH20115B'))
+            replace_tnd_vlan('vlanId', vlan_dict)
 
-    def nrcell_modify(key, value):
-        if value.find('dlCarrierFreq') > -1:
-            pci_dict = get_idle_dict(str(value))
-            print(f"pMax Dict..{pci_dict}")
-        else:
-            pci_dict = get_nrcell_dict(str(value))
-            print(f"pMax Dict..{pci_dict}")
-            print(str(key))
+        nrcell_par_dict = {
+            'cellName': 'cellName',
+            'gscn': 'gscn',
+            'dlMimoMode': 'dlMimoMode',
+            'msg1FrequencyStart': 'Msg1FrequencyStart',
+            'pMax': 'pMax',
+            'prachConfigurationIndex': 'prachConfigurationIndex',
+            'prachRootSequenceIndex': 'prachRootSequenceIndex',
+            'zeroCorrelationZoneConfig': 'zeroCorrelationZoneConfig',
+            'configuredEpsTac': 'configuredEpsTac',
+            'type0CoresetConfigurationIndex': 'type0CoresetConfigurationIndex',
+            'physCellId': 'physCellId',
+            'nrarfcnDl': 'nrarfcnDl',
+            'nrarfcnUl': 'nrarfcnUl',
+            'nrarfcn': 'nrarfcn',
+            'fiveGsTac': 'fiveGsTac',
+            'trackingAreaDN': 'fiveGsTac',
+            'dlCarrierFreq': 'dlCarrierFreq'}
+        mrbts_par_dict = {
+            'location': 'moduleLocation',
+            'btsName': 'btsName',
+            'radioMasterDN': 'mrBtsId',
+        }
 
-        replace_nrcell_par(str(key), pci_dict)
+        key_list = [key for key in nrcell_par_dict]
+        mrbts_key_list = [key for key in mrbts_par_dict]
+        print(key_list)
 
-    def process_tnd_pars():
-        tnd_dict = get_tnd_dict('CORENET Default  Gateway (s1,x2,U,C)')
-        print(tnd_dict.get('NPH20115B'))
+        submitted = st.form_submit_button("Process XML")
+        if submitted:
+            process_xml()
 
-        replace_tnd_par1('gateway', tnd_dict)
-
-        col18_dict = get_tnd_dict("gNodeB's user plane IP address   (s1,x2)")
-        print(col18_dict.get('NPH20115B'))
-        replace_tnd_par1('localIpAddr', col18_dict)
-
-        col14_dict = get_tnd_dict("gNodeB OAM IP address")
-        print(col14_dict.get('NPH20115B'))
-        replace_tnd_par2('localIpAddr', col14_dict)
-
-        vlan_dict = get_tnd_dict("CORENET AAV Ethernet VLAN ID (s1,x2,U,C)")
-        print(vlan_dict.get('NPH20115B'))
-        replace_tnd_vlan('vlanId', vlan_dict)
-
-    nrcell_par_dict = {
-        'cellName': 'cellName',
-        'gscn': 'gscn',
-        'dlMimoMode': 'dlMimoMode',
-        'msg1FrequencyStart': 'Msg1FrequencyStart',
-        'pMax': 'pMax',
-        'prachConfigurationIndex': 'prachConfigurationIndex',
-        'prachRootSequenceIndex': 'prachRootSequenceIndex',
-        'zeroCorrelationZoneConfig': 'zeroCorrelationZoneConfig',
-        'configuredEpsTac': 'configuredEpsTac',
-        'type0CoresetConfigurationIndex': 'type0CoresetConfigurationIndex',
-        'physCellId': 'physCellId',
-        'nrarfcnDl': 'nrarfcnDl',
-        'nrarfcnUl': 'nrarfcnUl',
-        'nrarfcn': 'nrarfcn',
-        'fiveGsTac': 'fiveGsTac',
-        'trackingAreaDN': 'fiveGsTac',
-        'dlCarrierFreq': 'dlCarrierFreq'}
-    mrbts_par_dict = {
-        'location': 'moduleLocation',
-        'btsName': 'btsName',
-        'radioMasterDN': 'mrBtsId',
-    }
-
-    key_list = [key for key in nrcell_par_dict]
-    mrbts_key_list = [key for key in mrbts_par_dict]
-    print(key_list)
-    if uploaded_file_tnd_ciq is not None and uploaded_file_nr_ciq is not None:
-
-        # my_bar = st.progress(0)
-
-        # for percent_complete in range(100):
-        #     time.sleep(0.02)
-        #     my_bar.progress(percent_complete + 1)
-        with st.spinner('Please Kindly Wait...'):
-            for i in key_list:
-                nrcell_modify(i, nrcell_par_dict.get(i))
-            # print(soup.find_all(attrs={"name": "btsName"}))mrbts_key_list = [key for key in mrbts_par_dict]
-            # print(key_list)
-            for mi in mrbts_key_list:
-                modify_mrbts_tag(mi, mrbts_par_dict.get(mi))
-            process_tnd_pars()
-            st.success('XML successfully parsed :point_down:!!')
-            # st.write(f"*VSWR*: :point_down:")
-
+    if st.session_state['download']:
         st.download_button(label='📥 Download XML ',
                            data=soup.prettify(),
                            file_name=f'3AHLOA(shared)_15BW+3AEHC (shared)_100BW_NoAHFIG.xml')
