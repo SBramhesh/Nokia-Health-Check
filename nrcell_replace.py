@@ -269,6 +269,9 @@ def app():
             new_id_str = id_str.replace(id_str.split('-')[1], str(new_id))
             result_str = new_id_str + '/' + suffix
             print(result_str)
+            if result_str[-1] == '/':
+                result_str = result_str[:-1]
+
             return result_str
 
         def get_mrbts_value(parName):
