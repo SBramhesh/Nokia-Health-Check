@@ -11,3 +11,4 @@ streamlit-authenticator==0.1.0
 google-cloud-core==2.2.1
 google-cloud-firestore==2.3.4
 bs4==0.0.1
+lxml==4.7.1
