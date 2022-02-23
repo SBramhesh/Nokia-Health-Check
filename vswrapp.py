@@ -1094,7 +1094,7 @@ def app():
                     worksheet.write(0, col_num, value, header_format)
 
                 # Set the default height of all the rows, efficiently.
-                worksheet.set_default_row(23)
+                worksheet.set_default_row(15)
                 # Set the default height of all the columns, efficiently.
                 # worksheet.set_default_column(45)
 

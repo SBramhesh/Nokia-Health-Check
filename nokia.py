@@ -1,5 +1,5 @@
 # nokia.py
-import fireStoreapp
+# import fireStoreapp
 import streamapp
 import attLogs
 import vswrapp
@@ -29,7 +29,7 @@ if authentication_status:
     st.sidebar.write('Logged in as *%s*' % (name))
     PAGES = {
         "Upload  New File (RTWP + VSWR)": streamapp,
-        "Files Processed (Raw Data + Summary)": fireStoreapp,
+        # "Files Processed (Raw Data + Summary)": fireStoreapp,
         "Process AT&T Log Files (RSSI)": attLogs,
         "5G Nokia Scripting": nrcell_replace,
     }
