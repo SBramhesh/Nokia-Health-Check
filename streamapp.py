@@ -202,7 +202,7 @@ add_selectbox = st.sidebar.selectbox(
 # make the request and return the json
 # user_data = requests.get(url).json()
 # pretty print JSON data
-# st.sidebar.write(user_data)
+# print(user_data)
 
 # Get the current working
 # directory (CWD)
@@ -210,22 +210,22 @@ cwd = os.getcwd()
 db = firestore.Client.from_service_account_json("firestore-key.json")
 # import json
 # key_dict = json.loads(st.secrets["textkey"])
-# st.sidebar.write(key_dict)
+# print(key_dict)
 # creds = service_account.Credentials.from_service_account_info(key_dict)
 # db = firestore.Client(credentials=creds, project="streamlit-reddit")
 
 # Print the current working
 # directory (CWD)
-# st.sidebar.write("Current working directory:", cwd)
+# print("Current working directory:", cwd)
 
 # Get the list of all files and directories
 # in the root directory
 # dir_list = os.listdir(cwd)
 
-# st.sidebar.write("Files and directories in '", cwd, "' :")
+# print("Files and directories in '", cwd, "' :")
 
 # print the list
-# st.sidebar.write(dir_list)
+# print(dir_list)
 
 # fd = "GFG.txt"
 
@@ -235,7 +235,7 @@ db = firestore.Client.from_service_account_json("firestore-key.json")
 # file.close()
 # file = open(fd, 'r')
 # text = file.read()
-# st.sidebar.write(text)
+# print(text)
 
 
 # directory = r"c:\temp\uploads"
@@ -328,14 +328,14 @@ def app():
 
         number = st.number_input(
             f'VSWR Threshold limit  ( > = )', value=1.4, key="vswr")
-        st.sidebar.write('The VSWR Threshold limit  is ',
-                         np.around(st.session_state.vswr, 2))
+        print('The VSWR Threshold limit  is ',
+              np.around(st.session_state.vswr, 2))
         # t = st.time_input('Set an alarm for', datetime.time(8, 45))
         # st.write('Alarm is set for', t)
 
         # def form_callback():
-        #     st.sidebar.write(st.session_state.my_slider)
-        #     st.sidebar.write(st.session_state.my_checkbox)
+        #     print(st.session_state.my_slider)
+        #     print(st.session_state.my_checkbox)
 
         # with st.form(key='my_form'):
         #     slider_input = st.slider('My slider', 0, 10, 5, key='my_slider')
@@ -352,13 +352,13 @@ def app():
             #  string_data = stringio.read()
             #  st.write(string_data)# Can be used wherever a "file-like" object is accepted:
             # excel_read = pd.read_csv(uploaded_file)
-            # st.sidebar.write(type(uploaded_file))
+            # print(type(uploaded_file))
             # vswr_uploaded_file = uploaded_file
             # df_vswr = process_vswr(vswr_uploaded_file)
             uploadedfn = uploaded_file.name
             siteid = uploadedfn.split('_')[2][1:]
             st.session_state["site_id"] = siteid
-            st.sidebar.write(f"Site Id: :point_right: *{siteid}*")
+            print(f"Site Id: :point_right: *{siteid}*")
             excel_read = pd.read_csv(uploaded_file, skiprows=1, header=None)
             myfiler = excel_read
             df_vswr = process_vswr(excel_read)
@@ -448,18 +448,18 @@ def app():
 
             print(f"----TO JSON---")
             radiojson = myfiler.to_json(orient="records")
-            # st.sidebar.write(radiojson)
+            # print(radiojson)
             data_dict = myfiler.to_dict("records")
-            doc_ref = db.collection(u'Nokiadbprod').document(
-                f"{siteid}->{str(now)}")
-            doc_ref.set({
-                u'Technology': u'Nokia LTE',
-                u'site_id': st.session_state["site_id"],
-                u'firstcol': first_json,
-                u'data': radiojson,
-                u'vswr': vswr_json,
-                "timestamp": dt_string
-            })
+            # doc_ref = db.collection(u'Nokiadbprod').document(
+            #     f"{siteid}->{str(now)}")
+            # doc_ref.set({
+            #     u'Technology': u'Nokia LTE',
+            #     u'site_id': st.session_state["site_id"],
+            #     u'firstcol': first_json,
+            #     u'data': radiojson,
+            #     u'vswr': vswr_json,
+            #     "timestamp": dt_string
+            # })
 
             # # Firestore DB#### 398 - 422
 
@@ -745,7 +745,7 @@ def app():
 
                 print(dffdif.T)
                 dffdift = dffdif.T
-                # st.sidebar.write(dffdift)
+                # print(dffdift)
                 dffdift = dffdift.iloc[2: -1, :]
 
                 print('count 0 ')
@@ -822,6 +822,7 @@ def app():
                     'ANT1 DI Cause': ant1_di_cause, 'ANT2 DI Cause': ant2_di_cause, 'ANT3 DI Cause': ant3_di_cause,
                     'ANT4 DI Cause': ant4_di_cause, 'Average RTWP ANT1': avg_ant1, 'Average RTWP ANT2': avg_ant2,
                     'Average RTWP ANT3': avg_ant3, 'Average RTWP ANT4': avg_ant4,
+                    # 'RMOD [logical number]':  rmodlist
                     'RMOD [logical number]':  rmodlist,  'CELL [logical name]': rxlistminusYZ,
                     }
 
@@ -833,7 +834,7 @@ def app():
 
             # bool_findings = df.loc[:, ['ANT1 DI Cause', 'ANT2 DI Cause',
             #    'ANT3 DI Cause', 'ANT4 DI Cause']].str.contains('0|0')
-            # st.sidebar.write(bool_findings)
+            # print(bool_findings)
             # mask = df['AT4 DI Cause'].str.contains(r'16|64', na=True)
             # df.reset_index(inplace=True)
             # df.reset_index(drop=True, inplace=True)
@@ -853,7 +854,28 @@ def app():
 
             dfcause = df.loc[df['Average DI'] > 3, ['ANT1 DI Cause',
                                                     'ANT2 DI Cause', 'ANT3 DI Cause', 'ANT4 DI Cause']]
+            df_report = df.loc[df['Average DI'] > 3, ['Band', 'Sector-Radio Type', 'ANT1 DI Cause',
+                                                      'ANT2 DI Cause', 'ANT3 DI Cause', 'ANT4 DI Cause']]
+            # st.sidebar.table(df_report)
+            report_dilist = df_report.values.tolist()
+            new_report_dilist = []
+            for rlist in report_dilist:
+                new_rlist = []
+                for key, val in enumerate(rlist):
+                    print(f"{key - 1} : {val}")
+                    if str(val).find('|') > -1 and str(val).find('0|0') == -1:
+                        new_rlist.append(key - 1)
+                    elif str(val).find('|') == -1 and str(val).find('0|0') == -1:
+                        new_rlist.append(val)
+                # rlist[:] = [x for x in rlist if "0|0" not in x]
+                print(new_rlist)
+                new_report_dilist.append(new_rlist)
+            print(new_report_dilist)
+
+            # print(report_dilist)
             threedilist = dfcause.values.tolist()
+            # print(threedilist)
+            reporting_len = len(threedilist)
             flat_list = list(chain(*threedilist))
             flat_list[:] = [x for x in flat_list if "0|0" not in x]
             print(flat_list)
@@ -1009,19 +1031,20 @@ def app():
                 # First we find the maximum length of the index column
                 idx_max = max(
                     [len(str(s)) for s in dataframe.index.values] + [len(str(dataframe.index.name))])
-                # st.sidebar.write(dataframe.index.name)
+                # print(dataframe.index.name)
                 len_index = [[s for s in dataframe[col].values]
                              for col in dataframe.columns]
-                # st.sidebar.write(len_index)
+                # print(len_index)
                 # Then, we concatenate this to the max of the lengths of column name and its values for each column, left to right
                 return_list = [idx_max] + [max([len(str(s)) for s in dataframe[col].values] + [
                                                len(col)]) for col in dataframe.columns]
-                # st.sidebar.write(return_list)
+                # print(return_list)
                 return [idx_max] + [max([len(str(s)) for s in dataframe[col].values] + [len(col)]) for col in dataframe.columns]
 
-                # st.sidebar.write(get_col_widths(df1))
+                # print(get_col_widths(df1))
 
             def to_excel(df, df1, df_vswr, df2):
+                vswr_offset = 5
                 output = BytesIO()
                 writer = pd.ExcelWriter(output, engine='xlsxwriter')
                 df = df.set_properties(**{'text-align': 'left'})
@@ -1029,16 +1052,27 @@ def app():
                 # st.table(df)
                 df.to_excel(writer, index=False)
                 # df1.to_excel(writer, sheet_name='Result',
-                #              startrow=1, startcol=0)
+                #              startrow=1, startcol=0)]
+                reporting_str = 'Please find the below report of RTWP Diversity imbalance:-'
 
                 workbook = writer.book
                 worksheet = writer.sheets['Sheet1']
                 vswr_format = workbook.add_format()
                 vswr_format.set_bold()
                 worksheet.write_string(
-                    df1.shape[0] + 4, 0, 'VSWR', vswr_format)
+                    df1.shape[0] + 2, 0, reporting_str, vswr_format)
+                for key, val in enumerate(new_report_dilist):
+                    port_str = ",".join(str(val[2:])).replace(
+                        ',,,', '#').replace(',', '').replace('#', ',').replace('[', '').replace(']', '')
+                    print(port_str)
+                    report_str = f"* {val[0]}-{val[1]} Port(s)-{port_str}"
+                    print(report_str)
+                    worksheet.write_string(
+                        df1.shape[0] + 4 + key-1, 0, report_str)
+                worksheet.write_string(
+                    df1.shape[0] + 4 + reporting_len, 0, 'VSWR', vswr_format)
                 df_vswr.to_excel(writer, sheet_name='Sheet1',
-                                 startrow=df1.shape[0] + 5, startcol=0, index=False)
+                                 startrow=df1.shape[0] + reporting_len + vswr_offset, startcol=0, index=False)
                 format1 = workbook.add_format({'num_format': '0.00'})
                 # Format all the columns.
                 my_format = workbook.add_format(
@@ -1073,11 +1107,11 @@ def app():
 
                 # Write the column headers with the defined format.
                 for col_num, value in enumerate(df2.columns.values):
-                    worksheet.write(len(df1) + 5, col_num,
+                    worksheet.write(len(df1) + reporting_len + vswr_offset, col_num,
                                     value, header_vswr_format)
 
                 # Set the default height of all the rows, efficiently.
-                worksheet.set_default_row(30)
+                worksheet.set_default_row(15)
                 # Set the default height of all the columns, efficiently.
                 # worksheet.set_default_column(45)
 
@@ -1089,21 +1123,27 @@ def app():
                 #  'minimum':  0,
                 #  'maximum':  30,
                 #  'format':   format3})
+                avg_rtwp_width = 12
                 col_width_list = get_col_widths(df1)
                 col_width_list[0] = 15  # Sector Radio Type
+                col_width_list[1] = 10  # Band
                 col_width_list[2] = 10  # Readings Analyzed
                 col_width_list[3] = 10  # Average DI
+                col_width_list[9] = avg_rtwp_width  # Average RTWP ANT1
+                col_width_list[10] = avg_rtwp_width  # Average RTWP ANT2
+                col_width_list[11] = avg_rtwp_width  # Average RTWP ANT3
+                col_width_list[12] = avg_rtwp_width  # Average RTWP ANT4
                 for i, width in enumerate(col_width_list):
                     worksheet.set_column(i, i, width)
 
                 worksheet.set_row(0, 30)  # Set the height of Row 1 to 30.
                 # worksheet.set_column('A:A', None, format1)
                 border_fmt = workbook.add_format(
-                    {'bottom': 5, 'top': 5, 'left': 5, 'right': 5})
+                    {'bottom': 1, 'top': 1, 'left': 1, 'right': 1})
                 worksheet.conditional_format(xlsxwriter.utility.xl_range(
                     0, 0, len(df1), len(df1.columns) - 1), {'type': 'no_errors', 'format': border_fmt})
                 worksheet.conditional_format(xlsxwriter.utility.xl_range(
-                    len(df1) + 5, 0, len(df2) + len(df1) + 5, len(df2.columns)), {'type': 'no_errors', 'format': border_fmt})
+                    len(df1) + reporting_len + vswr_offset, 0, len(df2) + len(df1) + vswr_offset + reporting_len, len(df2.columns)), {'type': 'no_errors', 'format': border_fmt})
                 # worksheet.conditional_format(xlsxwriter.utility.xl_range(
                 # 0, 0, 1, len(df1.columns)), {'type': 'no_errors', 'format': my_format})
                 writer.save()

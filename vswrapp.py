@@ -191,7 +191,7 @@ st.markdown('Please upload  **only excel files**.')
 # make the request and return the json
 # user_data = requests.get(url).json()
 # pretty print JSON data
-# st.sidebar.write(user_data)
+# print(user_data)
 
 # Get the current working
 # directory (CWD)
@@ -199,22 +199,22 @@ cwd = os.getcwd()
 db = firestore.Client.from_service_account_json("firestore-key.json")
 # import json
 # key_dict = json.loads(st.secrets["textkey"])
-# st.sidebar.write(key_dict)
+# print(key_dict)
 # creds = service_account.Credentials.from_service_account_info(key_dict)
 # db = firestore.Client(credentials=creds, project="streamlit-reddit")
 
 # Print the current working
 # directory (CWD)
-# st.sidebar.write("Current working directory:", cwd)
+# print("Current working directory:", cwd)
 
 # Get the list of all files and directories
 # in the root directory
 # dir_list = os.listdir(cwd)
 
-# st.sidebar.write("Files and directories in '", cwd, "' :")
+# print("Files and directories in '", cwd, "' :")
 
 # print the list
-# st.sidebar.write(dir_list)
+# print(dir_list)
 
 # fd = "GFG.txt"
 
@@ -224,7 +224,7 @@ db = firestore.Client.from_service_account_json("firestore-key.json")
 # file.close()
 # file = open(fd, 'r')
 # text = file.read()
-# st.sidebar.write(text)
+# print(text)
 
 
 # directory = r"c:\temp\uploads"
@@ -309,7 +309,7 @@ def process_vswr(uploaded_vswr_file):
         # excel_read = pd.read_csv(uploaded_file)
         # uploadedfn = uploaded_vswr_file.name
         # siteid = uploadedfn.split('_')[2][1:]
-        # st.sidebar.write(f"Site Id: :point_right: *{siteid}*")
+        # print(f"Site Id: :point_right: *{siteid}*")
         # excel_read = pd.read_csv(
         # uploaded_vswr_file, skiprows=1, header=None)
         excel_read = uploaded_vswr_file
@@ -614,7 +614,7 @@ def app():
             # excel_read = pd.read_csv(uploaded_file)
             uploadedfn = uploaded_vswr_file.name
             siteid = uploadedfn.split('_')[2][1:]
-            st.sidebar.write(f"Site Id: :point_right: *{siteid}*")
+            print(f"Site Id: :point_right: *{siteid}*")
             excel_read = pd.read_csv(
                 uploaded_vswr_file, skiprows=1, header=None)
             myfiler = excel_read
@@ -889,7 +889,7 @@ def app():
 
             # bool_findings = df.loc[:, ['ANT1 DI Cause', 'ANT2 DI Cause',
             #    'ANT3 DI Cause', 'ANT4 DI Cause']].str.contains('0|0')
-            # st.sidebar.write(bool_findings)
+            # print(bool_findings)
             # mask = df['AT4 DI Cause'].str.contains(r'16|64', na=True)
             # df.reset_index(inplace=True)
             # df.reset_index(drop=True, inplace=True)
@@ -1049,17 +1049,17 @@ def app():
                 # First we find the maximum length of the index column
                 idx_max = max(
                     [len(str(s)) for s in dataframe.index.values] + [len(str(dataframe.index.name))])
-                # st.sidebar.write(dataframe.index.name)
+                # print(dataframe.index.name)
                 len_index = [[s for s in dataframe[col].values]
                              for col in dataframe.columns]
-                # st.sidebar.write(len_index)
+                # print(len_index)
                 # Then, we concatenate this to the max of the lengths of column name and its values for each column, left to right
                 return_list = [idx_max] + [max([len(str(s)) for s in dataframe[col].values] + [
                     len(col)]) for col in dataframe.columns]
-                # st.sidebar.write(return_list)
+                # print(return_list)
                 return [idx_max] + [max([len(str(s)) for s in dataframe[col].values] + [len(col)]) for col in dataframe.columns]
 
-                # st.sidebar.write(get_col_widths(df1))
+                # print(get_col_widths(df1))
 
             def to_excel(df, df1):
                 output = BytesIO()
@@ -1113,10 +1113,10 @@ def app():
                 for i, width in enumerate(col_width_list):
                     worksheet.set_column(i, i, width)
 
-                worksheet.set_row(0, 30)  # Set the height of Row 1 to 30.
+                worksheet.set_row(0, 15)  # Set the height of Row 1 to 30.
                 # worksheet.set_column('A:A', None, format1)
                 border_fmt = workbook.add_format(
-                    {'bottom': 5, 'top': 5, 'left': 5, 'right': 5})
+                    {'bottom': 1, 'top': 1, 'left': 1, 'right': 1})
                 worksheet.conditional_format(xlsxwriter.utility.xl_range(
                     0, 0, len(df1), len(df1.columns) - 1), {'type': 'no_errors', 'format': border_fmt})
                 # worksheet.conditional_format(xlsxwriter.utility.xl_range(
