@@ -1044,7 +1044,7 @@ def app():
                 # print(get_col_widths(df1))
 
             def to_excel(df, df1, df_vswr, df2):
-                vswr_offset = 5
+                vswr_offset = 6
                 output = BytesIO()
                 writer = pd.ExcelWriter(output, engine='xlsxwriter')
                 df = df.set_properties(**{'text-align': 'left'})
@@ -1068,9 +1068,9 @@ def app():
                     report_str = f"* {val[0]}-{val[1]} Port(s)-{port_str}"
                     print(report_str)
                     worksheet.write_string(
-                        df1.shape[0] + 4 + key-1, 0, report_str)
+                        df1.shape[0] + 4 + key, 0, report_str)
                 worksheet.write_string(
-                    df1.shape[0] + 4 + reporting_len, 0, 'VSWR', vswr_format)
+                    df1.shape[0] + vswr_offset - 1 + reporting_len, 0, 'VSWR', vswr_format)
                 df_vswr.to_excel(writer, sheet_name='Sheet1',
                                  startrow=df1.shape[0] + reporting_len + vswr_offset, startcol=0, index=False)
                 format1 = workbook.add_format({'num_format': '0.00'})
