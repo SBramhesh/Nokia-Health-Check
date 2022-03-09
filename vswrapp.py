@@ -358,8 +358,9 @@ def process_vswr(uploaded_vswr_file):
         # myfile = myfile[~myfile.eq('-').any(1)]
 
         myfiler = myfilervswr
-        # st.sidebar.table(myfiler)
+        # print(myfiler)
 
+        # Get column values
         filt = myfiler.iloc[:, 0].str.contains(
             'Radio module') & myfiler.iloc[:, 2].str.contains('Supported TX bands')
         mylist = (myfiler.loc[filt]).values.flatten().tolist()
@@ -376,6 +377,8 @@ def process_vswr(uploaded_vswr_file):
         starttime = newlistt[3]
         endtime = newlistt[-1]
 
+        print(f"Column values are ..{newlistt}")
+
         myfiler.reset_index(drop=True)
 
         minusfilt = ~myfiler.eq('Radio module').any(
@@ -386,16 +389,22 @@ def process_vswr(uploaded_vswr_file):
         # print(myfilevswr.columns.values.tolist())
         radiofile = myfiler.set_index('Radio module')
         radioofile = radiofile.dropna()
+        # radioofile is the VSWR data frame
         print(f"VSWR data....")
-        # radioofile.head(100)
+        print(radioofile.head(100))
         my_list = radioofile.columns.values.tolist()
         print(f"List of columns.{my_list}")
         print(f"Index column is.. {radioofile.index.name}")
 
         radioofile['combined'] = radioofile.apply(
             lambda x: '%s_%s' % (x.name, x['Antenna/Port']), axis=1)
+        print(radioofile)
 
         grouped = radioofile.groupby(['combined'])
+        print(grouped)
+        d = dict(tuple(radioofile.groupby('combined')))
+        print(f"writing the dictionary....")
+        # print(d)
 
         rxlist = radioofile['combined'].unique().tolist()
         print(f"List of unique combinations.. {rxlist}")
@@ -488,9 +497,58 @@ def process_vswr(uploaded_vswr_file):
         limitdb = np.around(np.around(st.session_state.vswr, 2), 2) - 0.01
         cleanrxlist = [x for x in rxlist if str(x) != 'nan']
         print(f"cleanrxlist..{cleanrxlist}")
-        for i in cleanrxlist:
+        print(f"lenght of cleanrxlist..{len(cleanrxlist)}")
+        new_cleanrxlist = []
+        for l in range(1, (int(len(cleanrxlist)/4)+2)):
+            rmod1_list = [x for x in cleanrxlist if str(
+                x).find(f'RMOD-{l}') > -1]
+            print(f"list containing RMOD-{l}..{len(rmod1_list)}")
+            if len(rmod1_list) < 4:
+                print(rmod1_list)
+                for key, val in enumerate(rmod1_list):
+                    print(f"{key} || {val}")
+                    if not str(val).find(f'ANT{(int(key+1))}') > -1:
+                        print(
+                            f'==>>>>RMOD-{l}/RMOD_R-{l}(AHLOA)_ANT{(int(key+1))}')
+                        rmod1_list.insert(
+                            key, f'RMOD-{l}/RMOD_R-{l}(AHLOA)_ANT{(int(key+1))}')
+            new_cleanrxlist.append(rmod1_list)
 
-            dff = grouped.get_group(i)
+            # for c in range(1, 5):
+            #     if not str(val).find(f'ANT{c}') > -1:
+            #         rmod1_list.insert(
+            #             key, f'RMOD-{l}/RMOD_R-{l}(AHLOA)_ANT{c}')
+        flat_cleanrxlist = list(chain(*new_cleanrxlist))
+        print(f"cleanrxlist..{flat_cleanrxlist}")
+
+        def get_dff_recursive(key, val, flat_cleanrxlist):
+
+            try:
+                dff = grouped.get_group(val)
+            except KeyError:
+                print(f'recursive again called for {key}..{val}')
+                try:
+                    dff = grouped.get_group(flat_cleanrxlist[key-1])
+                except KeyError:
+                    return get_dff_recursive(key - 1, val, flat_cleanrxlist)
+                ant_num = str(val)[-4:]
+                dff.iloc[:, 0] = [ant_num, ant_num]
+                for u in range(2, no_of_readings+2):
+                    dff.iloc[:, u] = [0, 0]
+                dff.iloc[:, -1] = [str(dff.iloc[:, -1][0])[:-1] + ant_num[-1],
+                                   str(dff.iloc[:, -1][0])[:-1] + ant_num[-1]]
+            return dff
+
+        for key, i in enumerate(flat_cleanrxlist):
+
+            # print(type(grouped.get_group(i)))
+            print(f"value of key is..{key}")
+            print(f"value of i is..{i}")
+
+            dff = get_dff_recursive(key, i, flat_cleanrxlist)
+
+            print(f"get group for {i}")
+            print(dff)
             current_rmod = f"{dff['combined'].tolist()[0].split('_')[0]}{dff['combined'].tolist()[0].split('_')[1]}"
             current_afhig_ahloa = current_rmod.split('(')[1][:-1]
             print(f"current afhig_ahloa is..{current_afhig_ahloa}")
@@ -519,7 +577,8 @@ def process_vswr(uploaded_vswr_file):
         #     RMOD-1/RMOD_R-1(AHFIG)_ANT1
             print(f"dff[combined]is .. {dff['combined'].iloc[0]}")
             print(f"current rmod is. {current_rmod}")
-            dff = grouped.get_group(i)
+            # dff = grouped.get_group(i)
+            dff = get_dff_recursive(key, i, flat_cleanrxlist)
             dff['Avg'] = np.around(
                 dff.iloc[:, 2: -1].astype(float).sum(axis=1)/no_of_readings, 2)
             dff.drop(['Supported TX bands'], axis=1, inplace=True)
@@ -530,6 +589,9 @@ def process_vswr(uploaded_vswr_file):
                 f"combined value is..{dff['combined'].tolist()[0].split('_')[0]}{dff['combined'].tolist()[0].split('_')[1]}")
             print(f"Antenna value is..{antenna_num}")
             mean_df = dff['Avg'].mean()
+
+            print(dff)
+            print(f"mean_df is ..{mean_df}")
 
             print(f"Antenna Number is..{antenna_num}")
             if(int(antenna_num) == 1):
@@ -563,9 +625,9 @@ def process_vswr(uploaded_vswr_file):
         print(f"poprmodlist is..{poprmodlist}")
         print(f"readingslist..{readingslist}")
         print(f"avg_ant1..{avg_ant1}")
-        print(f"avg_ant1..{avg_ant2}")
-        print(f"avg_ant1..{avg_ant3}")
-        print(f"avg_ant1..{avg_ant4}")
+        print(f"avg_ant2..{avg_ant2}")
+        print(f"avg_ant3..{avg_ant3}")
+        print(f"avg_ant4..{avg_ant4}")
         print(f"ant1_percent..{ant1_percent}")
         print(f"ant2_percent..{ant2_percent}")
         print(f"ant3_percent..{ant3_percent}")
@@ -788,6 +850,7 @@ def app():
 
             limitdb = 1.39
             cleanrxlist = [x for x in rxlist if str(x) != 'nan']
+
             print(f"cleanrxlist..{cleanrxlist}")
             for i in cleanrxlist:
 
@@ -820,7 +883,7 @@ def app():
             #     RMOD-1/RMOD_R-1(AHFIG)_ANT1
                 print(f"dff[combined]is .. {dff['combined'].iloc[0]}")
                 print(f"current rmod is. {current_rmod}")
-                dff = grouped.get_group(i)
+                # dff = grouped.get_group(i)
                 dff['Avg'] = np.around(
                     dff.iloc[:, 2: -1].astype(float).sum(axis=1)/no_of_readings, 2)
                 dff.drop(['Supported TX bands'], axis=1, inplace=True)

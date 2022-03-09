@@ -1,3 +1,4 @@
+import itertools
 import streamlit as st
 import pandas as pd
 import re
@@ -362,7 +363,7 @@ def app():
             excel_read = pd.read_csv(uploaded_file, skiprows=1, header=None)
             myfiler = excel_read
             df_vswr = process_vswr(excel_read)
-            # st.sidebar.table(excel_read)
+            # print(excel_read)
 
             myfile1 = excel_read[excel_read.isin(
                 ['RTWP LTE']).any(axis=1)].index
@@ -699,19 +700,63 @@ def app():
             for i in rxlistminusYZ:
 
                 dff = grouped.get_group(i)
+                dff_columns = dff.columns.to_list()
+                dff_columns.insert(0, 'Radio Module')
+                print(dff_columns)
+                # dff.reset_index()
+                print(dff)
+                dff_list = [[]]
+                for u in range(0, len(dff)):
+                    print(
+                        f"key..{u} and value ..{list(dff.values[u])}")
+                    print(
+                        f"Antenna number at {u} is.. {str(dff.iat[u, 0])}")
+                    # 0 -> 1(0 values)  1 ->2  2->3  3->4
+                    # 0->3 then 0->1(0values) 1->2(0 values) 2->3 3->4
+                    if int(str(dff.iat[u, 0])[-1]) != int(u+1):
+
+                        difference = int(str(dff.iat[u, 0])[-1]) - int(u+1)
+                        print(f"difference is..{difference}")
+                        for d in range(difference):
+                            print(
+                                f"we are in key ..{u} comparing {str(dff.iat[u, 0])[-1]} to {u+1}")
+                            zero_list = list(itertools.repeat(
+                                '0', len(dff.values[u]) - 2))
+                            zero_list.insert(0, dff.index[u])
+                            zero_list.insert(1, f"ANT{u+d+1}")
+                            zero_list.insert(2, dff.iat[u, 1])
+                            dff_list.append(zero_list)
+                        df_list = list(dff.values[u])
+                        df_list.insert(0, dff.index[u])
+                        dff_list.append(df_list)
+                        print(dff_list)
+                    else:
+                        df_list = list(dff.values[u])
+                        df_list.insert(0, dff.index[u])
+                        dff_list.append(df_list)
+
+                dff_list = dff_list[1:]
+                print(dff_list)
+                dff = pd.DataFrame(dff_list, columns=dff_columns)
+                dff.reset_index(drop=True)
+                dff.set_index('Radio Module')
+                # dff.drop('Radio Module')
+                print(dff)
+
                 # print(f'value of i is..{i}')
-            #     print(dff.index[0])
 
                 # print('index value is..')
-                postfix = dff.loc[dff['RX carrier'] == i].index[0].split('(', 1)[
+                print(
+                    f"writing index..{dff.loc[dff['RX carrier'] == i]['Radio Module'][0]}")
+                postfix = str(dff.loc[dff['RX carrier'] == i]['Radio Module'][0]).split('(', 1)[
                     1][:-1]
                 sectorradiolist.append(mapradio(i, postfix))
                 bandlist.append(mapband(i))
-                rmodlist.append(dff.index[0])
+                rmodlist.append(dff['Radio Module'][0])
                 readingslist.append(str(no_of_readings))
 
                 # dff['Avg'] = dff.iloc[:, 2:].sum(axis=1)/no_of_readings
-                dff['Avg'] = np.around(dff.iloc[:, 2:].astype(
+                dff['Avg'] = np.around(dff.iloc[:, 3:].astype(
                     float).sum(axis=1)/no_of_readings, 1)
                 # print(f"dff average.. {dff.iloc[1,-1]}")
 
@@ -728,25 +773,27 @@ def app():
             #     filt33 =  tdff.iloc[:,1].astype(str).str.contains(dff['RX carrier'])
             #     lphfile = radiofile.loc[filt33]
             #     tdff['DIF'] = tdff.iloc[:, -25:].agg(['max', 'min'])
-                dffdi = dff.iloc[:, 2:-1].astype(float).agg(['max', 'min'])
-                dffmax = dff.iloc[:, 2:-1].astype(float).agg(['min'])
+                dffdi = dff.iloc[:, 3:-1].astype(float).agg(['max', 'min'])
+                print(dffdi)
+                dffmax = dff.iloc[:, 3:-1].astype(float).agg(['min'])
                 dffapp = dff.append(dffmax, ignore_index=True)
-                print(dffapp)
 
-                rangee = dffapp.shape[1]-3
+                rangee = dffapp.shape[1]-4
                 dffdif = dffapp
                 for index in range(rangee):
-                    dffdif.iloc[:, index+2] = dffapp.iloc[:, index+2].astype(
-                        float).apply(lambda x: x - float(dffapp.iloc[4, index+2]))
+                    dffdif.iloc[:, index+3] = dffapp.iloc[:, index+3].astype(
+                        float).apply(lambda x: x - float(dffapp.iloc[4, index+3]))
                     # dffdif.iloc[:, index+2] = dffapp.iloc[:, index +
                     #   2].apply(lambda x: x - dffapp.iloc[4, index+2])
                 #     dffapp.iloc[:,index+2].apply(lambda x: x - dffapp.iloc[4,index+2] )
-                dffdif = dffdif.iloc[:-1, :]
+                dffdif = dffdif.iloc[:-1, 1:]
+                print(dffdif)
 
-                print(dffdif.T)
                 dffdift = dffdif.T
                 # print(dffdift)
                 dffdift = dffdift.iloc[2: -1, :]
+                print('-------')
+                print(dffdift)
 
                 print('count 0 ')
                 countzero = (dffdift[0].astype(float) > limitdb).sum()
@@ -772,6 +819,7 @@ def app():
                 # dffdit['DI'] = dffdit['max'] - dffdit['min']
                 dffdit['DI'] = dffdit['max'].astype(
                     float) - dffdit['min'].astype(float)
+                print(dffdit)
                 meandif = dffdit['DI'].mean()
             #     dffdit['DI'] =  (dffdit.iloc[0]) - Int(dffdit.iloc[1])
             #     dffd3['mean'] = dffd3['DI'].mean(axis=0)
@@ -780,7 +828,7 @@ def app():
             #     dffgrt = dffdit[grtfilt]
                 count = len(dffdit.loc[grtfilt])
                 # minlist = max(list(dff.iloc[:, 2:-1].max()))
-                minlist = max(list(dff.iloc[:, 2:-1].astype(float).max()))
+                minlist = max(list(dff.iloc[:, 3:-1].astype(float).max()))
                 avgdilist.append(np.around((meandif), 1))
 
                 antlistnum(meandif, countzero, countone, counttwo, countthree)
@@ -856,7 +904,7 @@ def app():
                                                     'ANT2 DI Cause', 'ANT3 DI Cause', 'ANT4 DI Cause']]
             df_report = df.loc[df['Average DI'] > 3, ['Band', 'Sector-Radio Type', 'ANT1 DI Cause',
                                                       'ANT2 DI Cause', 'ANT3 DI Cause', 'ANT4 DI Cause']]
-            # st.sidebar.table(df_report)
+            # print(df_report)
             report_dilist = df_report.values.tolist()
             new_report_dilist = []
             for rlist in report_dilist:
